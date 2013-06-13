@@ -1,9 +1,6 @@
 import json
 
 
-filename = '/home/vineet/Dropbox/kodecrm.com404.har'
-
-
 class Har(object):
 
     def __init__(self, filename):
@@ -65,12 +62,21 @@ if __name__ == '__main__':
 
     # Usage:
     #
+    # import sys
+    #
+    # script, filename = sys.argv
+    #
+
     ## high level object oriented abstraction
+    #
     # har = Har(filename)
     # entries = har.entries(response__status=404, include=['request__url', 'response__status'])
     # print(list(entries))
+    #
 
     ## lower level functional abstraction
+    #
     # har = read_har(filename)
     # entries = filter_entries(har, response__status=404)
     # print(list(include_keys(entries, ['request__url', 'response__status'])))
+
