@@ -57,19 +57,8 @@ def get_key(_dict, key):
         return result if len(parts) == 1 else get_key(result, parts[1])
 
 
-def test():
-    d = dict([('a', 'A'),
-              ('p', {'q': 'Q'}),
-              ('x', {'y': {'z': 'Z'}})])
-    assert get_key(d, 'a') == 'A'
-    assert get_key(d, 'p__q') == 'Q'
-    assert get_key(d, 'x__y__z') == 'Z'
-    print('ok. All tests pass.')
-
-
 if __name__ == '__main__':
-    test()
-
+    pass
     # Usage:
     #
     # import sys
@@ -89,4 +78,3 @@ if __name__ == '__main__':
     # har = read_har(filename)
     # entries = filter_entries(get_entries(har), response__status=404)
     # print(list(include_keys(entries, ['request__url', 'response__status'])))
-
