@@ -11,6 +11,7 @@ Requirements
 ------------
 
 Python >= 3.2
+nose (for running tests)
 
 
 Why one more har file lib?
@@ -22,8 +23,15 @@ Why one more har file lib?
 3. For experimenting with stratified functional abstractions in Python.
 
 
-Project Status
---------------
+Todo
+----
 
-Just started with it. No docs. No tests. You decide!
+* Logging
+* Nose tests
+* Support for callables to be passed as filter lookup values
+* Support for 'or', 'not equal' etc. in filter lookup
+* Implement `exclude keys` function
+* Implement `original_keys` function
+* Implement CLI
+* Document stuff
 
