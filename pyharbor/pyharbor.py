@@ -4,7 +4,7 @@ import json
 class Har(object):
 
     def __init__(self, filename):
-        self.filaname = filename
+        self.filename = filename
         self.har = read_har(filename)
 
     def entries(self, include=None, exclude=None, **kwargs):
