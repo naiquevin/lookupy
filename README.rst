@@ -26,12 +26,9 @@ Why one more har file lib?
 Todo
 ----
 
-* Logging
 * Nose tests
-* Support for callables to be passed as filter lookup values
-* Support for 'or', 'not equal' etc. in filter lookup
 * Implement `exclude keys` function
-* Implement `original_keys` function
+* Allow querying request and response header list
 * Implement CLI
 * Document stuff
 
