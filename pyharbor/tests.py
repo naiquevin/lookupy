@@ -1,21 +1,34 @@
-from nose.tools import assert_raises, assert_list_equal
+from nose.tools import assert_raises, assert_list_equal, assert_equal
 
-from .pyharbor import get_key, get_entries, filter_entries, \
-    HarError, include_keys
+from .pyharbor import get_dunder_key, get_entries, filter_entries, \
+    HarError, include_keys, original_keys, undunder_dict
 
 
-entries_fixtures = [{'request': {'url': 'http://example.com'}, 'response': {'status': 404}},
-                    {'request': {'url': 'http://example.org'}, 'response': {'status': 200}},
-                    {'request': {'url': 'http://myphoto.jpg'}, 'response': {'status': 200}}]
+entries_fixtures = [{'request': {'url': 'http://example.com', 'headers': [{'name': 'Connection', 'value': 'Keep-Alive'}]},
+                     'response': {'status': 404, 'headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'}]}},
+                    {'request': {'url': 'http://example.org', 'headers': [{'name': 'Connection', 'value': 'Keep-Alive'}]},
+                     'response': {'status': 200, 'headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'}]}},
+                    {'request': {'url': 'http://example.com/myphoto.jpg', 'headers': [{'name': 'Connection', 'value': 'Keep-Alive'}]},
+                     'response': {'status': 200, 'headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'}]}}]
 
+
+def fe(entries, pred=None, **kwargs):
+    return list(filter_entries(entries, pred, **kwargs))
+
+
+def ik(entries, fields):
+    return list(include_keys(entries, fields))
+
+
+## Tests
 
 def test_get_key():
     d = dict([('a', 'A'),
               ('p', {'q': 'Q'}),
               ('x', {'y': {'z': 'Z'}})])
-    assert get_key(d, 'a') == 'A'
-    assert get_key(d, 'p__q') == 'Q'
-    assert get_key(d, 'x__y__z') == 'Z'
+    assert get_dunder_key(d, 'a') == 'A'
+    assert get_dunder_key(d, 'p__q') == 'Q'
+    assert get_dunder_key(d, 'x__y__z') == 'Z'
 
 
 def test_get_entries():
@@ -27,9 +40,6 @@ def test_get_entries():
 
 def test_filter_entries():
     entries = entries_fixtures
-
-    def fe(entries, pred=None, **kwargs):
-        return list(filter_entries(entries, pred, **kwargs))
 
     # when no lookup kwargs passed, all entries are returned
     assert_list_equal(fe(entries), entries)
@@ -50,15 +60,10 @@ def test_filter_entries():
 
 def test_include_keys():
     entries = entries_fixtures
-
-    def ik(entries, fields):
-        return list(include_keys(entries, fields))
-
     assert_list_equal(ik(entries, ['request']),
-                      [{'request': {'url': 'http://example.com'}},
-                       {'request': {'url': 'http://example.org'}},
-                       {'request': {'url': 'http://myphoto.jpg'}}])
-
+                      [{'request': {'url': 'http://example.com', 'headers': [{'name': 'Connection', 'value': 'Keep-Alive'}]}},
+                       {'request': {'url': 'http://example.org', 'headers': [{'name': 'Connection', 'value': 'Keep-Alive'}]}},
+                       {'request': {'url': 'http://example.com/myphoto.jpg', 'headers': [{'name': 'Connection', 'value': 'Keep-Alive'}]}}])
 
     assert_list_equal(ik(entries, ['response__status']),
                       [{'response__status': 404},
@@ -73,3 +78,24 @@ def test_include_keys():
                       [{'response__status': 404, 'cookies': None},
                        {'response__status': 200, 'cookies': None},
                        {'response__status': 200, 'cookies': None}])
+
+
+# check that response__status is flattened to 'status' since it's
+# unique but 'response__headers' and 'request__headers' stay the same
+# since, 'headers' is not unique
+def test_original_keys():
+    entry = {'request__url': 'http://example.com', 'request__headers': [{'name': 'Connection', 'value': 'Keep-Alive',}],
+             'response__status': 404, 'response__headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'}]}
+    assert_equal(original_keys(entry),
+                 {'url': 'http://example.com',
+                  'request__headers': [{'name': 'Connection', 'value': 'Keep-Alive',}],
+                  'status': 404,
+                  'response__headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'}]})
+
+
+def test_nested_dict():
+    entry = {'request__url': 'http://example.com', 'request__headers': [{'name': 'Connection', 'value': 'Keep-Alive',}],
+             'response__status': 404, 'response__headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'}]}
+    assert_equal(undunder_dict(entry),
+                 {'request': {'url': 'http://example.com', 'headers': [{'name': 'Connection', 'value': 'Keep-Alive',}]},
+                  'response': {'status': 404, 'headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'}]}})
