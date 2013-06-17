@@ -35,7 +35,7 @@ def get_entries(har):
 
 def filter_entries(entries, pred=None, **kwargs):
     if pred is None:
-        pred = lambda e: all(get_dunder_key(e, k) == v for k, v in kwargs.items())
+        pred = lambda e: all(lookup(e)(k)(v) for k, v in kwargs.items())
     return (e for e in entries if pred(e))
 
 
@@ -45,6 +45,46 @@ def include_keys(entries, fields):
 
 def exclude_keys(entries, fields):
     raise NotImplementedError
+
+
+def lookup(entry):
+    def curried(key):
+        init, last = key.rsplit('__', 1)
+        gdk = get_dunder_key
+        fin = false_if_none
+        if last == 'exact':
+            return lambda x: gdk(entry, init) == x
+        elif last == 'neq':
+            return lambda x: gdk(entry, init) != x
+        elif last == 'contains':
+            return lambda x: fin(gdk(entry, init), lambda y: y.find(x) >= 0)
+        elif last == 'icontains':
+            return lambda x: fin(gdk(entry, init), lambda y: y.lower().find(x.lower()) >= 0)
+        elif last == 'in':
+            return lambda x: gdk(entry, init) in x
+        elif last == 'startswith':
+            return lambda x: fin(gdk(entry, init), lambda y: y.startswith(x))
+        elif last == 'istartswith':
+            return lambda x: fin(gdk(entry, init), lambda y: y.lower().startswith(x.lower()))
+        elif last == 'endswith':
+            return lambda x: fin(gdk(entry, init), lambda y: y.endswith(x))
+        elif last == 'iendswith':
+            return lambda x: fin(gdk(entry, init), lambda y: y.lower().endswith(x.lower()))
+        elif last == 'gt':
+            return lambda x: gdk(entry, init) > x
+        elif last == 'gte':
+            return lambda x: gdk(entry, init) >= x
+        elif last == 'lt':
+            return lambda x: gdk(entry, init) < x
+        elif last == 'lte':
+            return lambda x: gdk(entry, init) <= x
+        else:
+            return lambda x: gdk(entry, key) == x
+    return curried
+
+
+def false_if_none(val, f):
+    return False if val is None else f(val)
 
 
 def get_dunder_key(_dict, key):
