@@ -20,8 +20,8 @@ It is still under development.
 Requirements
 ------------
 
-Python >= 3.2
-nose (for running tests)
+* Python >= 3.2
+* nose (for running tests)
 
 
 Why one more har file lib?
