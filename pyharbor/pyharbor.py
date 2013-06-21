@@ -8,7 +8,7 @@ class Har(object):
         self.har = read_har(filename)
 
     def entries(self, include=None, exclude=None, **kwargs):
-        entries = filter_entries(get_entries(self.har), **kwargs)
+        entries = filter_items(get_entries(self.har), **kwargs)
         if include is not None:
             return include_keys(entries, include)
         elif exclude is not None:
@@ -33,53 +33,53 @@ def get_entries(har):
         raise HarError('Har file format invalid. Key {e} not found'.format(e=e))
 
 
-def filter_entries(entries, pred=None, **kwargs):
+def filter_items(items, pred=None, **kwargs):
     if pred is None:
         pred = lambda e: all(lookup(e)(k)(v) for k, v in kwargs.items())
-    return (e for e in entries if pred(e))
+    return (e for e in items if pred(e))
 
 
-def include_keys(entries, fields):
-    return (dict((f, get_dunder_key(e, f)) for f in fields) for e in entries)
+def include_keys(items, fields):
+    return (dict((f, dunder_key_val(item, f)) for f in fields) for item in items)
 
 
-def exclude_keys(entries, fields):
+def exclude_keys(items, fields):
     raise NotImplementedError
 
 
-def lookup(entry):
+def lookup(item):
     def curried(key):
         init, last = key.rsplit('__', 1)
-        gdk = get_dunder_key
+        dkv = dunder_key_val
         fin = false_if_none
         if last == 'exact':
-            return lambda x: gdk(entry, init) == x
+            return lambda x: dkv(item, init) == x
         elif last == 'neq':
-            return lambda x: gdk(entry, init) != x
+            return lambda x: dkv(item, init) != x
         elif last == 'contains':
-            return lambda x: fin(gdk(entry, init), lambda y: y.find(x) >= 0)
+            return lambda x: fin(dkv(item, init), lambda y: y.find(x) >= 0)
         elif last == 'icontains':
-            return lambda x: fin(gdk(entry, init), lambda y: y.lower().find(x.lower()) >= 0)
+            return lambda x: fin(dkv(item, init), lambda y: y.lower().find(x.lower()) >= 0)
         elif last == 'in':
-            return lambda x: gdk(entry, init) in x
+            return lambda x: dkv(item, init) in x
         elif last == 'startswith':
-            return lambda x: fin(gdk(entry, init), lambda y: y.startswith(x))
+            return lambda x: fin(dkv(item, init), lambda y: y.startswith(x))
         elif last == 'istartswith':
-            return lambda x: fin(gdk(entry, init), lambda y: y.lower().startswith(x.lower()))
+            return lambda x: fin(dkv(item, init), lambda y: y.lower().startswith(x.lower()))
         elif last == 'endswith':
-            return lambda x: fin(gdk(entry, init), lambda y: y.endswith(x))
+            return lambda x: fin(dkv(item, init), lambda y: y.endswith(x))
         elif last == 'iendswith':
-            return lambda x: fin(gdk(entry, init), lambda y: y.lower().endswith(x.lower()))
+            return lambda x: fin(dkv(item, init), lambda y: y.lower().endswith(x.lower()))
         elif last == 'gt':
-            return lambda x: gdk(entry, init) > x
+            return lambda x: dkv(item, init) > x
         elif last == 'gte':
-            return lambda x: gdk(entry, init) >= x
+            return lambda x: dkv(item, init) >= x
         elif last == 'lt':
-            return lambda x: gdk(entry, init) < x
+            return lambda x: dkv(item, init) < x
         elif last == 'lte':
-            return lambda x: gdk(entry, init) <= x
+            return lambda x: dkv(item, init) <= x
         else:
-            return lambda x: gdk(entry, key) == x
+            return lambda x: dkv(item, key) == x
     return curried
 
 
@@ -87,14 +87,14 @@ def false_if_none(val, f):
     return False if val is None else f(val)
 
 
-def get_dunder_key(_dict, key):
+def dunder_key_val(_dict, key):
     parts = key.split('__', 1)
     try:
         result = _dict[parts[0]]
     except KeyError:
         return None
     else:
-        return result if len(parts) == 1 else get_dunder_key(result, parts[1])
+        return result if len(parts) == 1 else dunder_key_val(result, parts[1])
 
 
 def undunder_key(key):
@@ -149,5 +149,5 @@ if __name__ == '__main__':
     ## lower level functional abstraction
     #
     # har = read_har(filename)
-    # entries = filter_entries(get_entries(har), response__status=404)
+    # entries = filter_items(get_entries(har), response__status=404)
     # print(list(include_keys(entries, ['request__url', 'response__status'])))

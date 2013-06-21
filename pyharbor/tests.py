@@ -1,6 +1,6 @@
 from nose.tools import assert_raises, assert_list_equal, assert_equal
 
-from .pyharbor import get_dunder_key, get_entries, filter_entries, \
+from .pyharbor import dunder_key_val, get_entries, filter_items, \
     HarError, include_keys, original_keys, undunder_dict
 
 
@@ -13,7 +13,7 @@ entries_fixtures = [{'request': {'url': 'http://example.com', 'headers': [{'name
 
 
 def fe(entries, pred=None, **kwargs):
-    return list(filter_entries(entries, pred, **kwargs))
+    return list(filter_items(entries, pred, **kwargs))
 
 
 def ik(entries, fields):
@@ -26,9 +26,9 @@ def test_get_key():
     d = dict([('a', 'A'),
               ('p', {'q': 'Q'}),
               ('x', {'y': {'z': 'Z'}})])
-    assert get_dunder_key(d, 'a') == 'A'
-    assert get_dunder_key(d, 'p__q') == 'Q'
-    assert get_dunder_key(d, 'x__y__z') == 'Z'
+    assert dunder_key_val(d, 'a') == 'A'
+    assert dunder_key_val(d, 'p__q') == 'Q'
+    assert dunder_key_val(d, 'x__y__z') == 'Z'
 
 
 def test_get_entries():
@@ -38,7 +38,7 @@ def test_get_entries():
     assert_raises(HarError, get_entries, {})
 
 
-def test_filter_entries():
+def test_filter_items():
     entries = entries_fixtures
 
     # when no lookup kwargs passed, all entries are returned
