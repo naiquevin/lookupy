@@ -58,6 +58,35 @@ def test_filter_entries():
     assert_list_equal(images, entries[2:3])
 
 
+def test_filter_lookups():
+    entries = entries_fixtures
+
+    # exact
+    assert len(fe(entries, request__url__exact='http://example.org')) == 1
+    # neq
+    assert len(fe(entries, request__url__neq='http://example.org')) == 2
+    # (i)contains
+    assert len(fe(entries, request__url__contains='example')) == 3
+    assert len(fe(entries, request__url__icontains='ORG')) == 1
+    # in
+    assert len(fe(entries, response__status__in=[404, 200])) == 3
+    assert len(fe(entries, response__status__in=[500, 503])) == 0
+    assert len(fe(entries, response__status__in=[200])) == 2
+    assert len(fe(entries, response__status__in=[])) == 0
+    # (i)startswith
+    assert len(fe(entries, request__url__startswith='https:')) == 0
+    assert len(fe(entries, request__url__istartswith='HTTP:')) == 3
+    # (i)endswith
+    assert len(fe(entries, request__url__endswith='.jpg')) == 1
+    assert len(fe(entries, request__url__iendswith='.JPG')) == 1
+    # gt, gte
+    assert len(fe(entries, response__status__gt=404)) == 0
+    assert len(fe(entries, response__status__gte=404)) == 1
+    # lt, lte
+    assert len(fe(entries, response__status__lt=404)) == 2
+    assert len(fe(entries, response__status__lte=404)) == 3
+
+
 def test_include_keys():
     entries = entries_fixtures
     assert_list_equal(ik(entries, ['request']),
