@@ -122,7 +122,7 @@ def test_original_keys():
                   'response__headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'}]})
 
 
-def test_nested_dict():
+def test_undunder_dict():
     entry = {'request__url': 'http://example.com', 'request__headers': [{'name': 'Connection', 'value': 'Keep-Alive',}],
              'response__status': 404, 'response__headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'}]}
     assert_equal(undunder_dict(entry),
