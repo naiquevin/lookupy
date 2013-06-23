@@ -1,6 +1,6 @@
 from nose.tools import assert_raises, assert_list_equal, assert_equal
 
-from .pyharbor import dunder_key_val, get_entries, filter_items, \
+from .lookupy import dunder_key_val, get_entries, filter_items, \
     HarError, include_keys, original_keys, undunder_dict, Q
 
 
