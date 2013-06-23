@@ -5,11 +5,14 @@ from .pyharbor import dunder_key_val, get_entries, filter_items, \
 
 
 entries_fixtures = [{'request': {'url': 'http://example.com', 'headers': [{'name': 'Connection', 'value': 'Keep-Alive'}]},
-                     'response': {'status': 404, 'headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'}]}},
+                     'response': {'status': 404, 'headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'},
+                                                             {'name': 'Content-Type', 'value': 'text/html'}]}},
                     {'request': {'url': 'http://example.org', 'headers': [{'name': 'Connection', 'value': 'Keep-Alive'}]},
-                     'response': {'status': 200, 'headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'}]}},
+                     'response': {'status': 200, 'headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'},
+                                                             {'name': 'Content-Type', 'value': 'text/html'}]}},
                     {'request': {'url': 'http://example.com/myphoto.jpg', 'headers': [{'name': 'Connection', 'value': 'Keep-Alive'}]},
-                     'response': {'status': 200, 'headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'}]}}]
+                     'response': {'status': 200, 'headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'},
+                                                             {'name': 'Content-Type', 'value': 'image/jpg'}]}}]
 
 
 def fe(entries, *args, **kwargs):
@@ -96,6 +99,10 @@ def test_filter_items():
     # lt, lte
     assert len(fe(entries, response__status__lt=404)) == 2
     assert len(fe(entries, response__status__lte=404)) == 3
+    # filter (for deep filtering)
+    assert len(fe(entries, response__headers__filter=Q(name='Content-Type', value='image/jpg'))) == 1
+    assert len(fe(entries, response__headers__filter=Q(name='Content-Type', value='text/html'))) == 2
+    assert len(fe(entries, request__headers__filter=Q(name='Connection', value='close'))) == 0
 
     # testing compund lookups
     assert len(fe(entries, Q(request__url__exact='http://example.org'))) == 1

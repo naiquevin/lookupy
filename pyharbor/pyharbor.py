@@ -50,7 +50,8 @@ def exclude_keys(items, fields):
 
 
 def lookup(key, val):
-    init, last = key.rsplit('__', 1)
+    parts = key.rsplit('__', 1)
+    init, last = parts if len(parts) == 2 else (parts[0], None)
     dkv = dunder_key_val
     fin = false_if_none
     if last == 'exact':
@@ -79,6 +80,8 @@ def lookup(key, val):
         return lambda item: dkv(item, init) < val
     elif last == 'lte':
         return lambda item: dkv(item, init) <= val
+    elif last == 'filter':
+        return lambda item: len(list(filter_items(dkv(item, init), val))) > 0
     else:
         return lambda item: dkv(item, key) == val
 
