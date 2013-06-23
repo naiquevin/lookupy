@@ -1,37 +1,35 @@
-import json
 
 
-class Har(object):
+class Collection(object):
 
-    def __init__(self, filename):
-        self.filename = filename
-        self.har = read_har(filename)
+    def __init__(self, data):
+        self.data = data
 
-    def entries(self, include=None, exclude=None, **kwargs):
-        entries = filter_items(get_entries(self.har), **kwargs)
-        if include is not None:
-            return include_keys(entries, include)
-        elif exclude is not None:
-            return exclude_keys(entries, exclude)
-        else:
-            return entries
+    @property
+    def items(self):
+        return QuerySet(self.data)
 
 
-class HarError(Exception):
-    pass
+class QuerySet(object):
+
+    def __init__(self, data):
+        self.data = data
+
+    def filter(self, *args, **kwargs):
+        return QuerySet(filter_items(self.data, *args, **kwargs))
+
+    def select(self, *args, **kwargs):
+        flatten = kwargs.pop('flatten', False)
+        f = flatten_keys if flatten else undunder_dict
+        result = (f(d) for d in include_keys(self.data, args))
+        return QuerySet(result)
+
+    def __iter__(self):
+        for d in self.data:
+            yield d
 
 
-def read_har(filename):
-    with open(filename, 'r') as f:
-        return json.load(f)
-
-
-def get_entries(har):
-    try:
-        return har['log']['entries']
-    except KeyError as e:
-        raise HarError('Har file format invalid. Key {e} not found'.format(e=e))
-
+## filter and lookup functions
 
 def filter_items(items, *args, **kwargs):
     q1 = list(args) if args is not None else []
@@ -39,14 +37,6 @@ def filter_items(items, *args, **kwargs):
     lookup_groups = q1 + q2
     pred = lambda item: all(lg.evaluate(item) for lg in lookup_groups)
     return (item for item in items if pred(item))
-
-
-def include_keys(items, fields):
-    return (dict((f, dunder_key_val(item, f)) for f in fields) for item in items)
-
-
-def exclude_keys(items, fields):
-    raise NotImplementedError
 
 
 def lookup(key, val):
@@ -150,10 +140,10 @@ class LookupLeaf(LookupTreeElem):
 Q = LookupLeaf
 
 
-## some utility functions
+## functions that work on the keys in a dict
 
-def false_if_none(val, f):
-    return False if val is None else f(val)
+def include_keys(items, fields):
+    return (dict((f, dunder_key_val(item, f)) for f in fields) for item in items)
 
 
 def dunder_key_val(_dict, key):
@@ -170,7 +160,7 @@ def undunder_key(key):
     return key.rsplit('__', 1)[-1]
 
 
-def original_keys(_dict):
+def flatten_keys(_dict):
     keylist = list(_dict.keys())
     def decide_key(k, klist):
         newkey = undunder_key(k)
@@ -183,10 +173,7 @@ def undunder_dict(_dict):
 
     def f(key, value, acc):
         parts = key.split('__')
-        if len(parts) == 1:
-            acc[parts[0]] = value
-        else:
-            acc[parts[0]] = f(parts[1], value, {})
+        acc[parts[0]] = value if len(parts) == 1 else f(parts[1], value, {})
         return acc
 
     result = {}
@@ -199,24 +186,12 @@ def undunder_dict(_dict):
     return result
 
 
+## utility functions
+
+def false_if_none(val, f):
+    return False if val is None else f(val)
+
+
 if __name__ == '__main__':
     pass
-    # Usage:
-    #
-    # import sys
-    #
-    # script, filename = sys.argv
-    #
 
-    ## high level object oriented abstraction
-    #
-    # har = Har(filename)
-    # entries = har.entries(response__status=404, include=['request__url', 'response__status'])
-    # print(list(entries))
-    #
-
-    ## lower level functional abstraction
-    #
-    # har = read_har(filename)
-    # entries = filter_items(get_entries(har), response__status=404)
-    # print(list(include_keys(entries, ['request__url', 'response__status'])))

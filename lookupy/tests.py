@@ -1,7 +1,8 @@
-from nose.tools import assert_raises, assert_list_equal, assert_equal
+from nose.tools import assert_list_equal, assert_equal
 
-from .lookupy import dunder_key_val, get_entries, filter_items, \
-    HarError, include_keys, original_keys, undunder_dict, Q
+from .lookupy import dunder_key_val, filter_items, \
+    include_keys, flatten_keys, undunder_dict, Q, \
+    QuerySet, Collection
 
 
 entries_fixtures = [{'request': {'url': 'http://example.com', 'headers': [{'name': 'Connection', 'value': 'Keep-Alive'}]},
@@ -25,20 +26,13 @@ def ik(entries, fields):
 
 ## Tests
 
-def test_get_key():
+def test_dunder_key_val():
     d = dict([('a', 'A'),
               ('p', {'q': 'Q'}),
               ('x', {'y': {'z': 'Z'}})])
     assert dunder_key_val(d, 'a') == 'A'
     assert dunder_key_val(d, 'p__q') == 'Q'
     assert dunder_key_val(d, 'x__y__z') == 'Z'
-
-
-def test_get_entries():
-    d = {'log': {'entries': [{}, {}]}}
-    assert len(get_entries(d)) == 2
-    assert_raises(HarError, get_entries, {'log': {}})
-    assert_raises(HarError, get_entries, {})
 
 
 def test_Q():
@@ -106,17 +100,17 @@ def test_filter_items():
 
     # testing compund lookups
     assert len(fe(entries, Q(request__url__exact='http://example.org'))) == 1
-    assert len(fe(entries, 
+    assert len(fe(entries,
                   Q(request__url__exact='http://example.org', response__status=200)
                   |
                   Q(request__url__endswith='.com', response__status=404))) == 2
 
-    assert len(fe(entries, 
+    assert len(fe(entries,
                   ~Q(request__url__exact='http://example.org', response__status__gte=500)
                   |
                   Q(request__url__endswith='.com', response__status=404))) == 3
 
-    assert len(fe(entries, 
+    assert len(fe(entries,
                   ~Q(request__url__exact='http://example.org', response__status__gte=500)
                   |
                   Q(request__url__endswith='.com', response__status=404),
@@ -148,10 +142,10 @@ def test_include_keys():
 # check that response__status is flattened to 'status' since it's
 # unique but 'response__headers' and 'request__headers' stay the same
 # since, 'headers' is not unique
-def test_original_keys():
+def test_flatten_keys():
     entry = {'request__url': 'http://example.com', 'request__headers': [{'name': 'Connection', 'value': 'Keep-Alive',}],
              'response__status': 404, 'response__headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'}]}
-    assert_equal(original_keys(entry),
+    assert_equal(flatten_keys(entry),
                  {'url': 'http://example.com',
                   'request__headers': [{'name': 'Connection', 'value': 'Keep-Alive',}],
                   'status': 404,
@@ -164,3 +158,30 @@ def test_undunder_dict():
     assert_equal(undunder_dict(entry),
                  {'request': {'url': 'http://example.com', 'headers': [{'name': 'Connection', 'value': 'Keep-Alive',}]},
                   'response': {'status': 404, 'headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'}]}})
+
+
+def test_Collection_QuerySet():
+    data = [{'framework': 'Django', 'language': 'Python', 'type': 'full-stack'},
+            {'framework': 'Flask', 'language': 'Python', 'type': 'micro'},
+            {'framework': 'Rails', 'language': 'Ruby', 'type': 'full-stack'},
+            {'framework': 'Sinatra', 'language': 'Ruby', 'type': 'micro'},
+            {'framework': 'Zend', 'language': 'PHP', 'type': 'full-stack'},
+            {'framework': 'Slim', 'language': 'PHP', 'type': 'micro'}]
+    c = Collection(data)
+    r1 = c.items.filter(framework__startswith='S')
+    assert isinstance(r1, QuerySet)
+    assert len(list(r1)) == 2
+    r2 = c.items.filter(Q(language__exact='Python') | Q(language__exact='Ruby'))
+    assert len(list(r2)) == 4
+    r3 = c.items.filter(language='PHP')
+    assert_list_equal(list(r3.select('framework', 'type')),
+                      [{'framework': 'Zend', 'type': 'full-stack'},
+                       {'framework': 'Slim', 'type': 'micro'}])
+    r4 = c.items.filter(Q(language__exact='Python') | Q(language__exact='Ruby'))
+    assert_list_equal(list(r4.select('framework')),
+                      [{'framework': 'Django'},
+                       {'framework': 'Flask'},
+                       {'framework': 'Rails'},
+                       {'framework': 'Sinatra'}])
+    # :todo: test with flatten=True
+
