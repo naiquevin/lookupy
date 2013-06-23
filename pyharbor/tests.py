@@ -1,7 +1,7 @@
 from nose.tools import assert_raises, assert_list_equal, assert_equal
 
 from .pyharbor import dunder_key_val, get_entries, filter_items, \
-    HarError, include_keys, original_keys, undunder_dict
+    HarError, include_keys, original_keys, undunder_dict, Q
 
 
 entries_fixtures = [{'request': {'url': 'http://example.com', 'headers': [{'name': 'Connection', 'value': 'Keep-Alive'}]},
@@ -12,8 +12,8 @@ entries_fixtures = [{'request': {'url': 'http://example.com', 'headers': [{'name
                      'response': {'status': 200, 'headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'}]}}]
 
 
-def fe(entries, pred=None, **kwargs):
-    return list(filter_items(entries, pred, **kwargs))
+def fe(entries, *args, **kwargs):
+    return list(filter_items(entries, *args, **kwargs))
 
 
 def ik(entries, fields):
@@ -38,6 +38,30 @@ def test_get_entries():
     assert_raises(HarError, get_entries, {})
 
 
+def test_Q():
+    entries = entries_fixtures
+    q1 = Q(response__status__exact=404, request__url__contains='.com')
+    assert q1.evaluate(entries[0])
+
+    # test with negation
+    q2 = ~Q(response__status__exact=404)
+    assert q2.evaluate(entries[1])
+    # test multiple application of negation
+    assert not (~q2).evaluate(entries[1])
+
+    q3 = Q(response__status=200)
+    assert not (q1 & q3).evaluate(entries[0])
+    assert (q1 | q3).evaluate(entries[0])
+
+    assert_list_equal(list(((Q(request__url__endswith='.jpg') | Q(response__status=404)).evaluate(e)
+                      for e in entries)),
+                      [True, False, True])
+
+    assert_list_equal(list(((~Q(request__url__endswith='.jpg') | Q(response__status=404)).evaluate(e)
+                      for e in entries)),
+                      [True, True, False])
+
+
 def test_filter_items():
     entries = entries_fixtures
 
@@ -47,20 +71,7 @@ def test_filter_items():
     assert_list_equal(fe(entries, response__status=200), entries[1:])
     assert len(fe(entries, response__status=405)) == 0
 
-    # test with non None pred
-    dotorgs = fe(entries, pred=lambda x: x['request']['url'].endswith('.org'))
-    assert_list_equal(dotorgs, entries[1:2])
-
-    # test that pred takes preferrence if both pred and lookup kwargs passed
-    images = fe(entries,
-                pred=lambda x: x['request']['url'].endswith('.jpg'),
-                response__status=302)
-    assert_list_equal(images, entries[2:3])
-
-
-def test_filter_lookups():
-    entries = entries_fixtures
-
+    # testing individual types of lookups
     # exact
     assert len(fe(entries, request__url__exact='http://example.org')) == 1
     # neq
@@ -85,6 +96,24 @@ def test_filter_lookups():
     # lt, lte
     assert len(fe(entries, response__status__lt=404)) == 2
     assert len(fe(entries, response__status__lte=404)) == 3
+
+    # testing compund lookups
+    assert len(fe(entries, Q(request__url__exact='http://example.org'))) == 1
+    assert len(fe(entries, 
+                  Q(request__url__exact='http://example.org', response__status=200)
+                  |
+                  Q(request__url__endswith='.com', response__status=404))) == 2
+
+    assert len(fe(entries, 
+                  ~Q(request__url__exact='http://example.org', response__status__gte=500)
+                  |
+                  Q(request__url__endswith='.com', response__status=404))) == 3
+
+    assert len(fe(entries, 
+                  ~Q(request__url__exact='http://example.org', response__status__gte=500)
+                  |
+                  Q(request__url__endswith='.com', response__status=404),
+                  response__status__exact=200)) == 2
 
 
 def test_include_keys():

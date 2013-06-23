@@ -33,10 +33,12 @@ def get_entries(har):
         raise HarError('Har file format invalid. Key {e} not found'.format(e=e))
 
 
-def filter_items(items, pred=None, **kwargs):
-    if pred is None:
-        pred = lambda e: all(lookup(e)(k)(v) for k, v in kwargs.items())
-    return (e for e in items if pred(e))
+def filter_items(items, *args, **kwargs):
+    q1 = list(args) if args is not None else []
+    q2 = [Q(**kwargs)] if kwargs is not None else []
+    lookup_groups = q1 + q2
+    pred = lambda item: all(lg.evaluate(item) for lg in lookup_groups)
+    return (item for item in items if pred(item))
 
 
 def include_keys(items, fields):
@@ -47,41 +49,105 @@ def exclude_keys(items, fields):
     raise NotImplementedError
 
 
-def lookup(item):
-    def curried(key):
-        init, last = key.rsplit('__', 1)
-        dkv = dunder_key_val
-        fin = false_if_none
-        if last == 'exact':
-            return lambda x: dkv(item, init) == x
-        elif last == 'neq':
-            return lambda x: dkv(item, init) != x
-        elif last == 'contains':
-            return lambda x: fin(dkv(item, init), lambda y: y.find(x) >= 0)
-        elif last == 'icontains':
-            return lambda x: fin(dkv(item, init), lambda y: y.lower().find(x.lower()) >= 0)
-        elif last == 'in':
-            return lambda x: dkv(item, init) in x
-        elif last == 'startswith':
-            return lambda x: fin(dkv(item, init), lambda y: y.startswith(x))
-        elif last == 'istartswith':
-            return lambda x: fin(dkv(item, init), lambda y: y.lower().startswith(x.lower()))
-        elif last == 'endswith':
-            return lambda x: fin(dkv(item, init), lambda y: y.endswith(x))
-        elif last == 'iendswith':
-            return lambda x: fin(dkv(item, init), lambda y: y.lower().endswith(x.lower()))
-        elif last == 'gt':
-            return lambda x: dkv(item, init) > x
-        elif last == 'gte':
-            return lambda x: dkv(item, init) >= x
-        elif last == 'lt':
-            return lambda x: dkv(item, init) < x
-        elif last == 'lte':
-            return lambda x: dkv(item, init) <= x
-        else:
-            return lambda x: dkv(item, key) == x
-    return curried
+def lookup(key, val):
+    init, last = key.rsplit('__', 1)
+    dkv = dunder_key_val
+    fin = false_if_none
+    if last == 'exact':
+        return lambda item: dkv(item, init) == val
+    elif last == 'neq':
+        return lambda item: dkv(item, init) != val
+    elif last == 'contains':
+        return lambda item: fin(dkv(item, init), lambda y: y.find(val) >= 0)
+    elif last == 'icontains':
+        return lambda item: fin(dkv(item, init), lambda y: y.lower().find(val.lower()) >= 0)
+    elif last == 'in':
+        return lambda item: dkv(item, init) in val
+    elif last == 'startswith':
+        return lambda item: fin(dkv(item, init), lambda y: y.startswith(val))
+    elif last == 'istartswith':
+        return lambda item: fin(dkv(item, init), lambda y: y.lower().startswith(val.lower()))
+    elif last == 'endswith':
+        return lambda item: fin(dkv(item, init), lambda y: y.endswith(val))
+    elif last == 'iendswith':
+        return lambda item: fin(dkv(item, init), lambda y: y.lower().endswith(val.lower()))
+    elif last == 'gt':
+        return lambda item: dkv(item, init) > val
+    elif last == 'gte':
+        return lambda item: dkv(item, init) >= val
+    elif last == 'lt':
+        return lambda item: dkv(item, init) < val
+    elif last == 'lte':
+        return lambda item: dkv(item, init) <= val
+    else:
+        return lambda item: dkv(item, key) == val
 
+
+## Classes to compose compount lookups (Q object)
+
+class LookupTreeElem(object):
+
+    def __init__(self):
+        self.negate = False
+
+    def evaluate(self, item):
+        raise NotImplementedError
+
+
+class LookupNode(LookupTreeElem):
+
+    def __init__(self):
+        super(LookupNode, self).__init__()
+        self.children = []
+        self.op = 'and'
+
+    def add_child(self, child):
+        self.children.append(child)
+
+    def evaluate(self, item):
+        results = map(lambda x: x.evaluate(item), self.children)
+        result = any(results) if self.op == 'or' else all(results)
+        return not result if self.negate else result
+
+    def __invert__(self):
+        newnode = LookupNode()
+        newnode.negate = not self.negate
+        return newnode
+
+
+class LookupLeaf(LookupTreeElem):
+
+    def __init__(self, **kwargs):
+        super(LookupLeaf, self).__init__()
+        self.lookups = kwargs
+
+    def evaluate(self, item):
+        result = all(lookup(k, v)(item) for k, v in self.lookups.items())
+        return not result if self.negate else result
+
+    def __or__(self, other):
+        node = LookupNode()
+        node.op = 'or'
+        node.add_child(self)
+        node.add_child(other)
+        return node
+
+    def __and__(self, other):
+        node = LookupNode()
+        node.add_child(self)
+        node.add_child(other)
+        return node
+
+    def __invert__(self):
+        newleaf = LookupLeaf(**self.lookups)
+        newleaf.negate = not self.negate
+        return newleaf
+
+
+Q = LookupLeaf
+
+
+## some utility functions
 
 def false_if_none(val, f):
     return False if val is None else f(val)
