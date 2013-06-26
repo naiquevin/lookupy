@@ -71,7 +71,12 @@ def lookup(key, val, item):
     elif last == 'lte':
         return dkv(item, init) <= val
     elif last == 'filter':
-        return len(list(filter_items(dkv(item, init), val))) > 0
+        if not hasattr(val, 'evaluate'):
+            raise LookupyError('Lookup value not a Q object for nested filter lookup')
+        result = dkv(item, init)
+        if not isinstance(result, list):
+            raise LookupyError('Lookup result not a nested collection for further filtering')
+        return len(list(filter_items(result, val))) > 0
     else:
         return dkv(item, key) == val
 
@@ -184,6 +189,12 @@ def undunder_dict(_dict):
         else:
             result[rk].update(r[rk])
     return result
+
+
+## Exceptions
+
+class LookupyError(Exception):
+    pass
 
 
 ## utility functions

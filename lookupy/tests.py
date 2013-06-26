@@ -1,8 +1,8 @@
-from nose.tools import assert_list_equal, assert_equal
+from nose.tools import assert_list_equal, assert_equal, assert_raises
 
 from .lookupy import dunder_key_val, filter_items, \
     include_keys, flatten_keys, undunder_dict, Q, \
-    QuerySet, Collection
+    QuerySet, Collection, LookupyError
 
 
 entries_fixtures = [{'request': {'url': 'http://example.com', 'headers': [{'name': 'Connection', 'value': 'Keep-Alive'}]},
@@ -97,6 +97,10 @@ def test_filter_items():
     assert len(fe(entries, response__headers__filter=Q(name='Content-Type', value='image/jpg'))) == 1
     assert len(fe(entries, response__headers__filter=Q(name='Content-Type', value='text/html'))) == 2
     assert len(fe(entries, request__headers__filter=Q(name='Connection', value='close'))) == 0
+    # non-Q object passed as a val for filter lookup
+    assert_raises(LookupyError, fe, entries, response__headers__filter=0)
+    # filter can only be used for nested collections
+    assert_raises(LookupyError, fe, entries, response__status__filter=Q(name='Content-Type', value='text/html'))
 
     # testing compund lookups
     assert len(fe(entries, Q(request__url__exact='http://example.org'))) == 1
