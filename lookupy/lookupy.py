@@ -39,41 +39,41 @@ def filter_items(items, *args, **kwargs):
     return (item for item in items if pred(item))
 
 
-def lookup(key, val):
+def lookup(key, val, item):
     parts = key.rsplit('__', 1)
     init, last = parts if len(parts) == 2 else (parts[0], None)
     dkv = dunder_key_val
     fin = false_if_none
     if last == 'exact':
-        return lambda item: dkv(item, init) == val
+        return dkv(item, init) == val
     elif last == 'neq':
-        return lambda item: dkv(item, init) != val
+        return dkv(item, init) != val
     elif last == 'contains':
-        return lambda item: fin(dkv(item, init), lambda y: y.find(val) >= 0)
+        return fin(dkv(item, init), lambda y: y.find(val) >= 0)
     elif last == 'icontains':
-        return lambda item: fin(dkv(item, init), lambda y: y.lower().find(val.lower()) >= 0)
+        return fin(dkv(item, init), lambda y: y.lower().find(val.lower()) >= 0)
     elif last == 'in':
-        return lambda item: dkv(item, init) in val
+        return dkv(item, init) in val
     elif last == 'startswith':
-        return lambda item: fin(dkv(item, init), lambda y: y.startswith(val))
+        return fin(dkv(item, init), lambda y: y.startswith(val))
     elif last == 'istartswith':
-        return lambda item: fin(dkv(item, init), lambda y: y.lower().startswith(val.lower()))
+        return fin(dkv(item, init), lambda y: y.lower().startswith(val.lower()))
     elif last == 'endswith':
-        return lambda item: fin(dkv(item, init), lambda y: y.endswith(val))
+        return fin(dkv(item, init), lambda y: y.endswith(val))
     elif last == 'iendswith':
-        return lambda item: fin(dkv(item, init), lambda y: y.lower().endswith(val.lower()))
+        return fin(dkv(item, init), lambda y: y.lower().endswith(val.lower()))
     elif last == 'gt':
-        return lambda item: dkv(item, init) > val
+        return dkv(item, init) > val
     elif last == 'gte':
-        return lambda item: dkv(item, init) >= val
+        return dkv(item, init) >= val
     elif last == 'lt':
-        return lambda item: dkv(item, init) < val
+        return dkv(item, init) < val
     elif last == 'lte':
-        return lambda item: dkv(item, init) <= val
+        return dkv(item, init) <= val
     elif last == 'filter':
-        return lambda item: len(list(filter_items(dkv(item, init), val))) > 0
+        return len(list(filter_items(dkv(item, init), val))) > 0
     else:
-        return lambda item: dkv(item, key) == val
+        return dkv(item, key) == val
 
 
 ## Classes to compose compount lookups (Q object)
@@ -115,7 +115,7 @@ class LookupLeaf(LookupTreeElem):
         self.lookups = kwargs
 
     def evaluate(self, item):
-        result = all(lookup(k, v)(item) for k, v in self.lookups.items())
+        result = all(lookup(k, v, item) for k, v in self.lookups.items())
         return not result if self.negate else result
 
     def __or__(self, other):
