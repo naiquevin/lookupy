@@ -1,3 +1,4 @@
+from functools import partial
 
 
 class Collection(object):
@@ -43,25 +44,24 @@ def lookup(key, val, item):
     parts = key.rsplit('__', 1)
     init, last = parts if len(parts) == 2 else (parts[0], None)
     dkv = dunder_key_val
-    fin = false_if_none
     if last == 'exact':
         return dkv(item, init) == val
     elif last == 'neq':
         return dkv(item, init) != val
     elif last == 'contains':
-        return fin(dkv(item, init), lambda y: y.find(val) >= 0)
+        return iff_not_none(dkv(item, init), lambda y: y.find(val) >= 0)
     elif last == 'icontains':
-        return fin(dkv(item, init), lambda y: y.lower().find(val.lower()) >= 0)
+        return iff_not_none(dkv(item, init), lambda y: y.lower().find(val.lower()) >= 0)
     elif last == 'in':
         return dkv(item, init) in val
     elif last == 'startswith':
-        return fin(dkv(item, init), lambda y: y.startswith(val))
+        return iff_not_none(dkv(item, init), lambda y: y.startswith(val))
     elif last == 'istartswith':
-        return fin(dkv(item, init), lambda y: y.lower().startswith(val.lower()))
+        return iff_not_none(dkv(item, init), lambda y: y.lower().startswith(val.lower()))
     elif last == 'endswith':
-        return fin(dkv(item, init), lambda y: y.endswith(val))
+        return iff_not_none(dkv(item, init), lambda y: y.endswith(val))
     elif last == 'iendswith':
-        return fin(dkv(item, init), lambda y: y.lower().endswith(val.lower()))
+        return iff_not_none(dkv(item, init), lambda y: y.lower().endswith(val.lower()))
     elif last == 'gt':
         return dkv(item, init) > val
     elif last == 'gte':
@@ -188,8 +188,11 @@ def undunder_dict(_dict):
 
 ## utility functions
 
-def false_if_none(val, f):
-    return False if val is None else f(val)
+def iff(precond, val, f):
+    return False if not precond(val) else f(val)
+
+
+iff_not_none = partial(iff, lambda x: x is not None)
 
 
 if __name__ == '__main__':
