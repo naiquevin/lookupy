@@ -43,18 +43,14 @@ Here are some basic examples, see ``lookupy.tests.py`` for more of them::
     # [{'framework': 'Sinatra', 'type': 'micro', 'language': 'Ruby'},
     #  {'framework': 'Slim', 'type': 'micro', 'language': 'PHP'}]
 
-    list(c.items.filter(Q(language__exact='Python')
-                        |
-                        Q(language__exact='Ruby'))\
+    list(c.items.filter(Q(language__exact='Python') | Q(language__exact='Ruby'))\
                 .select('framework'))
     # [{'framework': 'Django'},
     #  {'framework': 'Flask'},
     #  {'framework': 'Rails'},
     #  {'framework': 'Sinatra'}]
 
-    list(c.items.filter(Q(language__exact='Python')
-                        |
-                        Q(language__exact='Ruby'))\
+    list(c.items.filter(Q(language__exact='Python') | Q(language__exact='Ruby'))\
                 .filter(framework__istartswith='s'))
     # [{'framework': 'Sinatra', 'type': 'micro', 'language': 'Ruby'}]
 
