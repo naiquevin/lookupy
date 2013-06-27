@@ -10,6 +10,10 @@ class Collection(object):
     def items(self):
         return QuerySet(self.data)
 
+    def __iter__(self):
+        for d in self.data:
+            yield d
+
 
 class QuerySet(object):
 
