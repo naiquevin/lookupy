@@ -53,18 +53,25 @@ def lookup(key, val, item):
     elif last == 'neq':
         return dkv(item, init) != val
     elif last == 'contains':
+        val = guard_str(val)
         return iff_not_none(dkv(item, init), lambda y: y.find(val) >= 0)
     elif last == 'icontains':
+        val = guard_str(val)
         return iff_not_none(dkv(item, init), lambda y: y.lower().find(val.lower()) >= 0)
     elif last == 'in':
+        val = guard_iter(val)
         return dkv(item, init) in val
     elif last == 'startswith':
+        val = guard_str(val)
         return iff_not_none(dkv(item, init), lambda y: y.startswith(val))
     elif last == 'istartswith':
+        val = guard_str(val)
         return iff_not_none(dkv(item, init), lambda y: y.lower().startswith(val.lower()))
     elif last == 'endswith':
+        val = guard_str(val)
         return iff_not_none(dkv(item, init), lambda y: y.endswith(val))
     elif last == 'iendswith':
+        val = guard_str(val)
         return iff_not_none(dkv(item, init), lambda y: y.lower().endswith(val.lower()))
     elif last == 'gt':
         return dkv(item, init) > val
@@ -75,11 +82,8 @@ def lookup(key, val, item):
     elif last == 'lte':
         return dkv(item, init) <= val
     elif last == 'filter':
-        if not hasattr(val, 'evaluate'):
-            raise LookupyError('Lookup value not a Q object for nested filter lookup')
-        result = dkv(item, init)
-        if not isinstance(result, list):
-            raise LookupyError('Lookup result not a nested collection for further filtering')
+        val = guard_Q(val)
+        result = guard_list(dkv(item, init))
         return len(list(filter_items(result, val))) > 0
     else:
         return dkv(item, key) == val
@@ -206,8 +210,25 @@ class LookupyError(Exception):
 def iff(precond, val, f):
     return False if not precond(val) else f(val)
 
-
 iff_not_none = partial(iff, lambda x: x is not None)
+
+
+def guard_type(classinfo, val):
+    if not isinstance(val, classinfo):
+        raise LookupyError('Value not a {classinfo}'.format(classinfo=classinfo))
+    return val
+
+guard_str = partial(guard_type, str)
+guard_list = partial(guard_type, list)
+guard_Q = partial(guard_type, Q)
+
+def guard_iter(val):
+    try:
+        iter(val)
+    except TypeError:
+        raise LookupyError('Value not an iterable')
+    else:
+        return val
 
 
 if __name__ == '__main__':

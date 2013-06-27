@@ -1,6 +1,6 @@
 from nose.tools import assert_list_equal, assert_equal, assert_raises
 
-from .lookupy import dunder_key_val, filter_items, \
+from .lookupy import dunder_key_val, filter_items, lookup, \
     include_keys, flatten_keys, undunder_dict, Q, \
     QuerySet, Collection, LookupyError
 
@@ -59,48 +59,132 @@ def test_Q():
                       [True, True, False])
 
 
+def test_lookup():
+    entry1, entry2, entry3 = entries_fixtures
+    # exact       -- works for strings and int
+    assert lookup('request__url__exact', 'http://example.com', entry1)
+    assert not lookup('request_url__exact', 'http://example.org', entry1)
+    assert lookup('response__status__exact', 404, entry1)
+    assert not lookup('response__status__exact', 404, entry2)
+    assert lookup('response_unknown__exact', None, entry1)
+
+    # neq         -- works for strings and ints
+    assert not lookup('request__url__neq', 'http://example.com', entry1)
+    assert lookup('request_url__neq', 'http://example.org', entry1)
+    assert not lookup('response__status__neq', 404, entry1)
+    assert lookup('response__status__neq', 404, entry2)
+    assert not lookup('response_unknown__neq', None, entry1)
+
+    # contains    -- works for strings, else raises error
+    assert lookup('request__url__contains', '.com', entry1)
+    assert not lookup('request__url__contains', 'www', entry1)
+    assert_raises(LookupyError, lookup, 'response__status__contains',
+                  2, entry2)
+    assert_raises(LookupyError, lookup, 'response__unknown__contains',
+                  None, entry2)
+
+    # icontains   -- works for strings, else raises error
+    assert lookup('request__url__icontains', 'EXAMPLE', entry1)
+    assert not lookup('request__url__icontains', 'www', entry1)
+    assert_raises(LookupyError, lookup, 'response__status__icontains',
+                  2, entry2)
+    assert_raises(LookupyError, lookup,
+                  'response__unknown__icontains', None, entry2)
+
+    # in          -- works for strings and lists, else raises error
+    assert lookup('request__url__in', ['http://example.com',
+                                       'http://blog.example.com'], entry1)
+
+    assert lookup('response__status__in', [400, 200], entry2)
+    assert not lookup('response__status__in', [], entry2)
+    assert lookup('request__url__in', 'http://example.com/?q=hello', entry1)
+    assert_raises(LookupyError, lookup, 'response__status__in', 404, entry1)
+
+    # startswith  -- works for strings, else raises error
+    assert lookup('request__url__startswith', 'http://', entry1)
+    assert not lookup('request__url__startswith', 'HTTP://', entry1)
+    assert_raises(LookupyError, lookup,
+                  'response__status__startswith', 4, entry1)
+
+    # istartswith -- works for strings, else raises error
+    assert lookup('request__url__istartswith', 'http://', entry1)
+    assert lookup('request__url__istartswith', 'HTTP://', entry1)
+    assert_raises(LookupyError, lookup,
+                  'response__status__istartswith', 4, entry1)
+
+    # endswith    -- works for strings, else raises error
+    assert lookup('request__url__endswith', '.jpg', entry3)
+    assert not lookup('request__url__endswith', '.JPG', entry3)
+    assert_raises(LookupyError, lookup, 'response__status__endswith',
+                  0, entry3)
+
+    # iendswith   -- works for strings, else raises error
+    assert lookup('request__url__iendswith', '.jpg', entry3)
+    assert lookup('request__url__iendswith', '.JPG', entry3)
+    assert_raises(LookupyError, lookup, 'response__status__iendswith',
+                  0, entry3)
+
+    # gt          -- works for strings and int
+    assert lookup('response__status__gt', 200, entry1)
+    assert not lookup('response__status__gt', 404, entry1)
+    assert lookup('request__url__gt', 'ftp://example.com', entry1)
+    assert not lookup('request__url__gt', 'http://example.com', entry1)
+
+    # gte         -- works for strings and int
+    assert lookup('response__status__gte', 200, entry1)
+    assert lookup('response__status__gte', 404, entry1)
+    assert lookup('request__url__gte', 'ftp://example.com', entry1)
+    assert lookup('request__url__gte', 'http://example.com', entry1)
+
+    # lt          -- works for strings and int
+    assert lookup('response__status__lt', 301, entry2)
+    assert not lookup('response__status__lt', 200, entry2)
+    assert lookup('request__url__lt', 'ws://example.com', entry2)
+    assert not lookup('request__url__lt', 'http://example.org', entry2)
+
+    # lte         -- works for strings and int
+    assert lookup('response__status__lte', 301, entry2)
+    assert lookup('response__status__lte', 200, entry2)
+    assert lookup('request__url__lte', 'ws://example.com', entry2)
+    assert lookup('request__url__lte', 'http://example.org', entry2)
+
+    # filter      -- works for Q objects, else raises error
+    assert lookup('response__headers__filter',
+                  Q(name__exact='Content-Type', value__exact='image/jpg'),
+                  entry3)
+    assert not lookup('response__headers__filter',
+                      Q(name__exact='Content-Type', value__exact='text/html'),
+                      entry3)
+    assert_raises(LookupyError, lookup, 'response__headers__filter',
+                  0, entry3)
+    assert_raises(LookupyError, lookup, 'response__headers__filter',
+                  "hello", entry3)
+    assert_raises(LookupyError, lookup, 'response__headers__filter',
+                  None, entry3)
+    assert_raises(LookupyError, lookup, 'response__headers__filter',
+                  {'a': 'b'}, entry3)
+    assert_raises(LookupyError, lookup, 'response__status__filter',
+                  Q(name__exact='Content-Type', value__exact='image/jpg'),
+                  entry3)
+
+    # nothing     -- works for strings and int
+    assert lookup('request__url', 'http://example.com', entry1)
+    assert not lookup('request_url', 'http://example.org', entry1)
+    assert lookup('response__status', 404, entry1)
+    assert not lookup('response__status', 404, entry2)
+    assert lookup('response_unknown', None, entry1)
+
+
 def test_filter_items():
     entries = entries_fixtures
 
     # when no lookup kwargs passed, all entries are returned
     assert_list_equal(fe(entries), entries)
+
+    # simple 1st level lookups
     assert_list_equal(fe(entries, request__url='http://example.com'), entries[0:1])
     assert_list_equal(fe(entries, response__status=200), entries[1:])
     assert len(fe(entries, response__status=405)) == 0
-
-    # testing individual types of lookups
-    # exact
-    assert len(fe(entries, request__url__exact='http://example.org')) == 1
-    # neq
-    assert len(fe(entries, request__url__neq='http://example.org')) == 2
-    # (i)contains
-    assert len(fe(entries, request__url__contains='example')) == 3
-    assert len(fe(entries, request__url__icontains='ORG')) == 1
-    # in
-    assert len(fe(entries, response__status__in=[404, 200])) == 3
-    assert len(fe(entries, response__status__in=[500, 503])) == 0
-    assert len(fe(entries, response__status__in=[200])) == 2
-    assert len(fe(entries, response__status__in=[])) == 0
-    # (i)startswith
-    assert len(fe(entries, request__url__startswith='https:')) == 0
-    assert len(fe(entries, request__url__istartswith='HTTP:')) == 3
-    # (i)endswith
-    assert len(fe(entries, request__url__endswith='.jpg')) == 1
-    assert len(fe(entries, request__url__iendswith='.JPG')) == 1
-    # gt, gte
-    assert len(fe(entries, response__status__gt=404)) == 0
-    assert len(fe(entries, response__status__gte=404)) == 1
-    # lt, lte
-    assert len(fe(entries, response__status__lt=404)) == 2
-    assert len(fe(entries, response__status__lte=404)) == 3
-    # filter (for deep filtering)
-    assert len(fe(entries, response__headers__filter=Q(name='Content-Type', value='image/jpg'))) == 1
-    assert len(fe(entries, response__headers__filter=Q(name='Content-Type', value='text/html'))) == 2
-    assert len(fe(entries, request__headers__filter=Q(name='Connection', value='close'))) == 0
-    # non-Q object passed as a val for filter lookup
-    assert_raises(LookupyError, fe, entries, response__headers__filter=0)
-    # filter can only be used for nested collections
-    assert_raises(LookupyError, fe, entries, response__status__filter=Q(name='Content-Type', value='text/html'))
 
     # testing compund lookups
     assert len(fe(entries, Q(request__url__exact='http://example.org'))) == 1
