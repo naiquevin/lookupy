@@ -4,9 +4,9 @@ Lookupy
 Lookupy is a Python library that provides a
 [Django](http://djangoproject.com/)
 [QuerySet](https://docs.djangoproject.com/en/1.5/ref/models/querysets/)
-like interface to query (select and filter) data (dicts and list of
-dicts). Needless to say, some code and ideas are shamelessly copied
-from Django's core!
+like interface to query (select and filter) data (list of
+dicts). Needless to say, few bits of code and ideas are shamelessly
+copied from Django's core!
 
 It actually started off as a library to parse and extract useful data
 out of HAR (HTTP Archive) files but along the way I felt that a
