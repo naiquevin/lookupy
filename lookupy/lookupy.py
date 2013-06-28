@@ -89,7 +89,7 @@ def lookup(key, val, item):
         return dkv(item, key) == val
 
 
-## Classes to compose compount lookups (Q object)
+## Classes to compose compound lookups (Q object)
 
 class LookupTreeElem(object):
 
