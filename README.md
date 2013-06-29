@@ -22,7 +22,8 @@ Requirements
 * Python >= 3.2
 * [nose](http://pythontesting.net/framework/nose/nose-introduction/)
   [optional, for running tests]
-
+* [coverage.py](http://nedbatchelder.com/code/coverage/)
+  [optional to measure code test coverage]
 
 Examples
 --------
