@@ -1,3 +1,14 @@
+"""
+   lookupy.tests
+   ~~~~~~~~~~~~~
+
+   This module contains tests for the lookupy module written using
+   nose to be run using::
+
+       $ nosetests -v
+
+"""
+
 from nose.tools import assert_list_equal, assert_equal, assert_raises
 
 from .lookupy import dunder_key_val, filter_items, lookup, \
