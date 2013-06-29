@@ -40,8 +40,8 @@ dicts), ``lookupy`` can be used to extract a subset of the data
 depending upon some criteria. The criteria can be specifyied using
 what is known as the "lookup parameters".
 
-But first, we need to construct a Collection object out of the dataset
-as follows,
+But first, we need to construct a ``Collection`` object out of the
+dataset as follows,
 
 ```python
     >>> from lookupy import Collection, Q
@@ -56,8 +56,9 @@ as follows,
     >>> c = Collection(data)
 ```
 
+This collection exposes an attribute ``items`` which is a QuerySet.
 Now to filter some data out of this, we call the ``filter`` method of
-the Collection object passing lookup parameters to it
+``items`` QuerySet passing our lookup parameters to it.
 
 ```python
     >>> c.items.filter(framework__startswith='S')
@@ -106,11 +107,10 @@ Lookupy also supports having the result contain only selected fields
 by providing the ``select`` method on the QuerySet.
 
 Calling the filter and select methods on a QuerySet returns another
-QuerySet so filter and select calls can be chained
-together. Internally, these methods always return a generator so
-actual "filtering" and "selecting" happens lazily i.e. only when the
-resulting queryset is consumed (QuerySet and Collection both implement
-the iterator protocol).
+QuerySet so these calls can be chained together. Internally, filtering
+and selecting leverage Python's generators for lazy evaluation. Also,
+``QuerySet`` and ``Collection`` both implement the
+[iterator protocol](http://docs.python.org/2/tutorial/classes.html#iterators).
 
 ```python
     >>> result = c.items.filter(Q(language__exact='Python') | Q(language__exact='Ruby')) \
@@ -125,8 +125,8 @@ the iterator protocol).
 
 For nested dicts, the key in the lookup parameters can be constructed
 using double underscores as ``request__status__exact=404``. Finally,
-the data can also be filtered by nested key-value pairs using the same
-``Q`` object.
+the data can also be filtered by nested collection of key-value pairs
+using the same ``Q`` object.
 
 ```python
     >>> data = [{'a': 'python', 'b': {'p': 1, 'q': 2}, 'c': [{'name': 'version', 'value': '3.4'}, {'name': 'author', 'value': 'Guido van Rossum'}]},
@@ -139,11 +139,11 @@ the data can also be filtered by nested key-value pairs using the same
 ```
 
 In the last example, we used the ``Q`` object to filter the original
-dict by nested key-value pairs i.e. we queries for only those
-languages for which the version string contains at dot (``.``). Note
-that this is different from filtering the nested dicts themselves. To
-do that, we can easily construct Collection objects for the nested
-list of dicts similarly.
+dict by nested collection of key-value pairs i.e. we queried for only
+those languages for which the version string contains a dot
+(``.``). Note that this is different from filtering the nested
+collections themselves. To do that, we can easily construct
+``Collection`` objects for the child collections.
 
 
 Supported lookup types
