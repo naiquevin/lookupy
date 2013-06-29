@@ -23,7 +23,7 @@ Requirements
 * [nose](http://pythontesting.net/framework/nose/nose-introduction/)
   [optional, for running tests]
 * [coverage.py](http://nedbatchelder.com/code/coverage/)
-  [optional to measure code test coverage]
+  [optional, for measuring code test coverage]
 
 
 Quickstart
