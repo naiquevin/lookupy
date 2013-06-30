@@ -5,15 +5,15 @@ Lookupy is a Python library that provides a
 [Django](http://djangoproject.com/)
 [QuerySet](https://docs.djangoproject.com/en/1.5/ref/models/querysets/)
 like interface to query (select and filter) data (list of
-dicts). Needless to say, few bits of code and ideas are shamelessly
-copied from Django's core!
+dictionaries). Needless to say, some ideas are shamelessly copied from
+Django's core!
 
 It actually started off as a library to parse and extract useful data
 out of HAR (HTTP Archive) files but along the way I felt that a
 generic library can be useful since I often find myself trying to get
-data out of json collections.
+data out of JSON collections.
 
-Rightnow, it's still a WIP (but tests pass and it generally works).
+Right now, it's still a WIP (but tests pass and it generally works).
 
 
 Requirements
@@ -26,22 +26,22 @@ Requirements
   [optional, for measuring code test coverage]
 
 
-Quickstart
-----------
+Quick start
+-----------
 
-Since this lib is based on Django QuerySets, it would help to first
-understand how they work. In Django, QuerySets are used to construct
-SQL queries to fetch data from the database eg. using the filter
-method of the QuerySet objects is equivalent to writing the ``WHERE``
-clause in SQL.
+Since this library is based on Django QuerySets, it would help to
+first understand how they work. In Django, QuerySets are used to
+construct SQL queries to fetch data from the database e.g. using the
+filter method of the QuerySet objects is equivalent to writing the
+``WHERE`` clause in SQL.
 
 Applying the same concept to simple collections of data (lists of
 dicts), ``lookupy`` can be used to extract a subset of the data
-depending upon some criteria. The criteria can be specifyied using
+depending upon some criteria. The criteria can be specified using
 what is known as the "lookup parameters".
 
 But first, we need to construct a ``Collection`` object out of the
-dataset as follows,
+data set as follows,
 
 ```python
     >>> from lookupy import Collection, Q
@@ -151,7 +151,7 @@ Supported lookup types
 These are the currently supported lookup types,
 
 * ``exact`` exactly equality (default)
-* ``neq`` unequality
+* ``neq`` inequality
 * ``contains`` containment
 * ``icontains`` insensitive containment
 * ``in`` membership
@@ -180,13 +180,14 @@ Todo
 
 * Better test coverage
 * Add examples
-* Implement CLI for json files
+* Measure performance for larger data sets
+* Implement CLI for JSON files
 * Create package and upload to PyPI
 
 
 License
 -------
 
-This lib is provided as-is under the
+This library is provided as-is under the
 [MIT License](http://opensource.org/licenses/MIT)
 
