@@ -19,7 +19,7 @@ Rightnow, it's still a WIP (but tests pass and it generally works).
 Requirements
 ------------
 
-* Python >= 3.2
+* Python >= 3.2 (see [why](#why-python3))
 * [nose](http://pythontesting.net/framework/nose/nose-introduction/)
   [optional, for running tests]
 * [coverage.py](http://nedbatchelder.com/code/coverage/)
@@ -73,8 +73,8 @@ A lookup parameter is basically like a conditional clause and is of
 the form ``<key>__<lookuptype>=<value>`` where ``<key>`` is a key in
 the dict and ``<lookuptype>`` is one of the predefined keywords that
 specify how to match the ``<value>`` with the actual value
-corresponding to the key in each dict. See lookup type table below for
-the supported lookup types.
+corresponding to the key in each dict. See
+[list of lookup types](#supported-lookup-types)
 
 Multiple lookups are by default combined using the ``and`` logical
 operator (``or`` and ``not`` are also supported as we will see in a
@@ -82,8 +82,7 @@ bit)
 
 ```python
     >>> list(c.items.filter(framework__startswith='S', language__exact='Ruby'))
-    [{'framework': 'Sinatra', 'type': 'micro', 'language': 'Ruby'},
-     {'framework': 'Slim', 'type': 'micro', 'language': 'PHP'}]
+    [{'framework': 'Sinatra', 'type': 'micro', 'language': 'Ruby'}]
 ```
 
 For ``or`` and ``not``, we can compose a complex lookup using ``Q``
@@ -151,8 +150,8 @@ Supported lookup types
 
 These are the currently supported lookup types,
 
-* ``exact`` exactly equal to (default)
-* ``neq`` not equal to
+* ``exact`` exactly equality (default)
+* ``neq`` unequality
 * ``contains`` containment
 * ``icontains`` insensitive containment
 * ``in`` membership
