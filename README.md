@@ -163,6 +163,7 @@ These are the currently supported lookup types,
 * ``gte`` greater than or equal to
 * ``lt`` less than
 * ``lte`` less than or equal to
+* ``regex`` regular expression search
 * ``filter`` nested filter
 
 

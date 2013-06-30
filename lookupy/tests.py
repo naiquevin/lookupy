@@ -9,6 +9,7 @@
 
 """
 
+import re
 from nose.tools import assert_list_equal, assert_equal, assert_raises
 
 from .lookupy import dunder_key_val, filter_items, lookup, \
@@ -158,6 +159,16 @@ def test_lookup():
     assert lookup('response__status__lte', 200, entry2)
     assert lookup('request__url__lte', 'ws://example.com', entry2)
     assert lookup('request__url__lte', 'http://example.org', entry2)
+
+    # regex       -- works for compiled patterns and strings
+    pattern = r'^http:\/\/.+g$'
+    assert lookup('request__url__regex', pattern, entry2)
+    assert lookup('request__url__regex', pattern, entry3)
+    assert not lookup('request__url__regex', pattern, entry1)
+    compiled_pattern = re.compile(pattern)
+    assert lookup('request__url__regex', compiled_pattern, entry2)
+    assert lookup('request__url__regex', compiled_pattern, entry3)
+    assert not lookup('request__url__regex', compiled_pattern, entry1)
 
     # filter      -- works for Q objects, else raises error
     assert lookup('response__headers__filter',

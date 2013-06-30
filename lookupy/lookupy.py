@@ -6,6 +6,7 @@
 
 """
 
+import re
 from functools import partial
 
 
@@ -189,6 +190,8 @@ def lookup(key, val, item):
         return dkv(item, init) < val
     elif last == 'lte':
         return dkv(item, init) <= val
+    elif last == 'regex':
+        return re.search(val, dkv(item, init)) is not None
     elif last == 'filter':
         val = guard_Q(val)
         result = guard_list(dkv(item, init))
