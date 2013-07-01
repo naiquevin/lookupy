@@ -19,7 +19,7 @@ Right now, it's still a WIP (but tests pass and it generally works).
 Requirements
 ------------
 
-* Python >= 3.2 (see [why](#why-python3))
+* Python [tested in 2.7 and 3.2]
 * [nose](http://pythontesting.net/framework/nose/nose-introduction/)
   [optional, for running tests]
 * [coverage.py](http://nedbatchelder.com/code/coverage/)
@@ -165,14 +165,6 @@ These are the currently supported lookup types,
 * ``lte`` less than or equal to
 * ``regex`` regular expression search
 * ``filter`` nested filter
-
-
-Why Python3?
-------------
-
-I wanted to use it as an opportunity to (finally) get started with
-Python 3. Eventually I will make sure that it works with Python 2 as
-well since that's what I mostly use at other times.
 
 
 Todo
