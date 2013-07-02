@@ -257,6 +257,8 @@ class LookupNode(LookupTreeElem):
 
     def __invert__(self):
         newnode = LookupNode()
+        for c in self.children:
+            newnode.add_child(c)
         newnode.negate = not self.negate
         return newnode
 

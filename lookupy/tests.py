@@ -61,6 +61,7 @@ def test_Q():
     q3 = Q(response__status=200)
     assert not (q1 & q3).evaluate(entries[0])
     assert (q1 | q3).evaluate(entries[0])
+    assert (~(q1 & q3)).evaluate(entries[0])
 
     assert_list_equal(list(((Q(request__url__endswith='.jpg') | Q(response__status=404)).evaluate(e)
                       for e in entries)),
