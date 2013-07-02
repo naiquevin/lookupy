@@ -47,6 +47,12 @@ def test_dunder_key_val():
     assert dunder_key_val(d, 'x__y__z') == 'Z'
 
 
+def test_Collection():
+    c = Collection(entries_fixtures)
+    assert_list_equal(list(c.items), entries_fixtures)
+    assert_list_equal(list(c), entries_fixtures)
+
+
 def test_Q():
     entries = entries_fixtures
     q1 = Q(response__status__exact=404, request__url__contains='.com')
