@@ -113,6 +113,12 @@ class QuerySet(object):
     def select(self, *args, **kwargs):
         """Selects specific fields of the data
 
+        e.g. to select just the keys 'framework' and 'type' from many
+        keys, ::
+
+            >>> c.items.select('framework', 'type')
+
+
         :param args   : field names to select
         :param kwargs : optional keyword args
 
@@ -147,6 +153,14 @@ def filter_items(items, *args, **kwargs):
 
 def lookup(key, val, item):
     """Checks if key-val pair exists in item using various lookup types
+
+    The lookup types are derived from the `key` and then used to check
+    if the lookup holds true for the item::
+
+        >>> lookup('request__url__exact', 'http://example.com', item)
+
+    The above will return True if item['request']['url'] ==
+    'http://example.com' else False
 
     :param key  : (str) that represents the field name to find
     :param val  : (mixed) object to match the value in the item against
@@ -292,9 +306,15 @@ Q = LookupLeaf
 def include_keys(items, fields):
     """Function to keep only specified fields in data
 
+    Returns a list of dict with only the keys mentioned in the
+    `fields` param::
+
+        >>> include_keys(items, ['request__url', 'response__status'])
+
     :param items  : iterable of dicts
     :param fields : (list) fieldnames to keep
     :rtype        : lazy iterable
+
     """
     return (dict((f, dunder_key_val(item, f)) for f in fields) for item in items)
 
@@ -336,6 +356,7 @@ def undunder_key(key):
 
     :param key : (str) dunder key
     :rtype     : (str) last part of the dunder key
+
     """
     return key.rsplit('__', 1)[-1]
 
@@ -371,6 +392,7 @@ def undunder_dict(_dict):
 
     :param _dict : (dict) flat dict
     :rtype       : (dict) nested dict
+
     """
 
     def f(key, value, acc):
@@ -391,12 +413,23 @@ def undunder_dict(_dict):
 ## Exceptions
 
 class LookupyError(Exception):
+    """Base exception class for all exceptions raised by lookupy"""
     pass
 
 
 ## utility functions
 
 def iff(precond, val, f):
+    """If and only if the precond is True
+
+    Shortcut function for precond(val) and f(val). It is mainly used
+    to create partial functions for commonly required preconditions
+
+    :param precond : (function) represents the precondition
+    :param val     : (mixed) value to which the functions are applied
+    :param f       : (function) the actual function
+
+    """
     return False if not precond(val) else f(val)
 
 iff_not_none = partial(iff, lambda x: x is not None)
