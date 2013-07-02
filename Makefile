@@ -7,6 +7,7 @@ test:
 
 coverage:
 	coverage run `which nosetests` -v
+	coverage html
 	xdg-open htmlcov/index.html
 
 shell:
