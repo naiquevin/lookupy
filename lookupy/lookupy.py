@@ -197,15 +197,15 @@ def lookup(key, val, item):
         val = guard_str(val)
         return iff_not_none(dkv(item, init), lambda y: y.lower().endswith(val.lower()))
     elif last == 'gt':
-        return dkv(item, init) > val
+        return iff_not_none(dkv(item, init), lambda y: y > val)
     elif last == 'gte':
-        return dkv(item, init) >= val
+        return iff_not_none(dkv(item, init), lambda y: y >= val)
     elif last == 'lt':
-        return dkv(item, init) < val
+        return iff_not_none(dkv(item, init), lambda y: y < val)
     elif last == 'lte':
-        return dkv(item, init) <= val
+        return iff_not_none(dkv(item, init), lambda y: y <= val)
     elif last == 'regex':
-        return re.search(val, dkv(item, init)) is not None
+        return iff_not_none(dkv(item, init), lambda y: re.search(val, y) is not None)
     elif last == 'filter':
         val = guard_Q(val)
         result = guard_list(dkv(item, init))
