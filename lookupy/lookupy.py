@@ -225,6 +225,19 @@ class LookupTreeElem(object):
     def evaluate(self, item):
         raise NotImplementedError
 
+    def __or__(self, other):
+        node = LookupNode()
+        node.op = 'or'
+        node.add_child(self)
+        node.add_child(other)
+        return node
+
+    def __and__(self, other):
+        node = LookupNode()
+        node.add_child(self)
+        node.add_child(other)
+        return node
+
 
 class LookupNode(LookupTreeElem):
     """A node (element having children) in the lookup expression tree
@@ -279,19 +292,6 @@ class LookupLeaf(LookupTreeElem):
         """
         result = all(lookup(k, v, item) for k, v in self.lookups.items())
         return not result if self.negate else result
-
-    def __or__(self, other):
-        node = LookupNode()
-        node.op = 'or'
-        node.add_child(self)
-        node.add_child(other)
-        return node
-
-    def __and__(self, other):
-        node = LookupNode()
-        node.add_child(self)
-        node.add_child(other)
-        return node
 
     def __invert__(self):
         newleaf = LookupLeaf(**self.lookups)
