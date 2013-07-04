@@ -177,10 +177,10 @@ def lookup(key, val, item):
         return dkv(item, init) != val
     elif last == 'contains':
         val = guard_str(val)
-        return iff_not_none(dkv(item, init), lambda y: y.find(val) >= 0)
+        return iff_not_none(dkv(item, init), lambda y: val in y)
     elif last == 'icontains':
         val = guard_str(val)
-        return iff_not_none(dkv(item, init), lambda y: y.lower().find(val.lower()) >= 0)
+        return iff_not_none(dkv(item, init), lambda y: val.lower() in y.lower())
     elif last == 'in':
         val = guard_iter(val)
         return dkv(item, init) in val
