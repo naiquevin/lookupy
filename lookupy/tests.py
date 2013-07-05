@@ -301,4 +301,8 @@ def test_Collection_QuerySet():
                        {'framework': 'Rails'},
                        {'framework': 'Sinatra'}])
     # :todo: test with flatten=True
+    r5 = c.items.filter(framework__startswith='S').select('framework', 'somekey')
+    assert_list_equal(list(r5),
+                      [{'framework': 'Sinatra', 'somekey': None},
+                       {'framework': 'Slim', 'somekey': None}])
 
