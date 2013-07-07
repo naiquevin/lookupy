@@ -25,7 +25,22 @@ Requirements
 * [nose](http://pythontesting.net/framework/nose/nose-introduction/)
   [optional, for running tests]
 * [coverage.py](http://nedbatchelder.com/code/coverage/)
-  [optional, for measuring code test coverage]
+  [optional, for test coverage]
+
+
+Installation
+------------
+
+This package is not yet uploaded to PyPI which I plan to do once I
+have tested it enough. So for now it can be installed from github via
+pip as follows.
+
+```bash
+$ pip install git+git://github.com/naiquevin/lookupy.git
+```
+
+**Tip!** Consider installing inside a
+  [virtualenv](http://www.virtualenv.org/en/release-1.10/)
 
 
 Quick start
@@ -168,7 +183,7 @@ Supported lookup types
 
 These are the currently supported lookup types,
 
-* ``exact`` exactly equality (default)
+* ``exact`` exact equality (default)
 * ``neq`` inequality
 * ``contains`` containment
 * ``icontains`` insensitive containment
@@ -189,15 +204,15 @@ Gotchas!
 --------
 
 1. If a non-existent ``key`` is passed to ``select``, then it will be
-   included in the result with value ``None`` for all.
+   included in the result with value ``None`` for all results.
 
 2. If a non-existent ``key`` is passed to ``filter``, then the lookup
    will always fail. At first, this doesn't seem consistent with the
    first point but it's done to keep the overall behaviour predictable
-   and consistent e.g. If a non-existent key is used with ``lt``
-   lookup with integer, say ``2``, as the val, then the lookup will
-   always fail even though ``None < 2 == True`` in Python 2. Best is
-   to just avoid such situations.
+   e.g. If a non-existent key is used with ``lt`` lookup with integer,
+   say ``2``, as the val, then the lookup will always fail even though
+   ``None < 2 == True`` in Python 2. Best is to just avoid such
+   situations.
 
 3. Because of the way ``select`` works at the moment, if chained with
    ``filter`` it should be called only after it and not before (unless
@@ -209,16 +224,13 @@ Running tests
 -------------
 
 ```bash
-
 $ make test
-
 ```
 
 
 Todo
 ----
 
-* Better test coverage
 * Measure performance for larger data sets
 * Implement CLI for JSON files
 * Create package and upload to PyPI
@@ -229,3 +241,4 @@ License
 
 This library is provided as-is under the
 [MIT License](http://opensource.org/licenses/MIT)
+
