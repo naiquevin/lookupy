@@ -75,16 +75,15 @@ data set as follows,
 
 ```
 
-This collection exposes an attribute ``items`` which is a QuerySet.
-In order to filter some data out of this, we call the ``filter``
-method of ``items`` passing our lookup parameters to it.
+In order to filter some data out of collection, we call the ``filter``
+method passing our lookup parameters to it.
 
 ```python
 
->>> c.items.filter(framework__startswith='S')
+>>> c.filter(framework__startswith='S')
 <lookupy.lookupy.QuerySet object at 0xb740d40c>
 
->>> list(c.items.filter(framework__startswith='S'))
+>>> list(c.filter(framework__startswith='S'))
 [{'framework': 'Sinatra', 'type': 'micro', 'language': 'Ruby'},
 {'framework': 'Slim', 'type': 'micro', 'language': 'PHP'}]
 
@@ -103,7 +102,7 @@ will see in a bit)
 
 ```python
 
->>> list(c.items.filter(framework__startswith='S', language__exact='Ruby'))
+>>> list(c.filter(framework__startswith='S', language__exact='Ruby'))
 [{'framework': 'Sinatra', 'type': 'micro', 'language': 'Ruby'}]
 
 ```
@@ -117,13 +116,13 @@ Django).
 
 ```python
 
->>> list(c.items.filter(Q(language__exact='Python') | Q(language__exact='Ruby')))
+>>> list(c.filter(Q(language__exact='Python') | Q(language__exact='Ruby')))
 [{'framework': 'Django', 'language': 'Python', 'type': 'full-stack'},
  {'framework': 'Flask', 'language': 'Python', 'type': 'micro'},
  {'framework': 'Rails', 'language': 'Ruby', 'type': 'full-stack'},
  {'framework': 'Sinatra', 'language': 'Ruby', 'type': 'micro'}]
 
->>> list(c.items.filter(~Q(language__startswith='R'), framework__endswith='go'))
+>>> list(c.filter(~Q(language__startswith='R'), framework__endswith='go'))
 [{'framework': 'Django', 'language': 'Python', 'type': 'full-stack'}]
 
 ```
@@ -140,7 +139,7 @@ so nothing is evaluated until consumption.
 
 ```python
 
->>> result = c.items.filter(Q(language__exact='Python') | Q(language__exact='Ruby')) \
+>>> result = c.filter(Q(language__exact='Python') | Q(language__exact='Ruby')) \
                     .filter(framework__istartswith='s')) \
                     .select('framework')
 
@@ -161,9 +160,9 @@ using the same ``Q`` object.
 >>> data = [{'a': 'python', 'b': {'p': 1, 'q': 2}, 'c': [{'name': 'version', 'value': '3.4'}, {'name': 'author', 'value': 'Guido van Rossum'}]},
 ...         {'a': 'erlang', 'b': {'p': 3, 'q': 4}, 'c': [{'name': 'version', 'value': 'R16B01'}, {'name': 'author', 'y': 'Joe Armstrong'}]}]
 >>> c = Collection(data)
->>> list(c.items.filter(b__q__gte=4))
+>>> list(c.filter(b__q__gte=4))
 [{'a': 'erlang', 'c': [{'name': 'version', 'value': 'R16B01'}, {'y': 'Joe Armstrong', 'name': 'author'}], 'b': {'q': 4, 'p': 3}}]
->>> list(c.items.filter(c__filter=Q(name='version', value__contains='.')))
+>>> list(c.filter(c__filter=Q(name='version', value__contains='.')))
 [{'a': 'python', 'c': [{'name': 'version', 'value': '3.4'}, {'name': 'author', 'value': 'Guido van Rossum'}], 'b': {'q': 2, 'p': 1}}]
 
 ```
