@@ -9,44 +9,6 @@
 import re
 from functools import partial
 
-
-class Collection(object):
-    """Basic interface that provides QuerySet object from data
-
-    It takes data as an iterable of dicts and provides a QuerySet
-    instance that can be used for querying and filtering.
-
-    Usually, you create a collection instance by passing the raw data
-    and then access the ``items`` property of the collection object
-    which would be a QuerySet::
-
-        >>> import json
-        >>> from lookupy.lookupy import Collection
-        >>> with open('/path/to/data.json') as f:
-        ...     data = json.load(f)
-        ...     c = Collection(data)
-        ...
-        >>> c
-        <lookupy.lookupy.Collection object at 0xb74a0c4c>
-        >>> c.items
-        <lookupy.lookupy.QuerySet object at 0xb74a0ccc>
-
-    :param data: the data in form of an iterable of dictionaries
-
-    """
-
-    def __init__(self, data):
-        self.data = data
-
-    @property
-    def items(self):
-        return QuerySet(self.data)
-
-    def __iter__(self):
-        for d in self.data:
-            yield d
-
-
 class QuerySet(object):
     """Provides an interface to filter data and select specific fields
     from the data
@@ -132,6 +94,7 @@ class QuerySet(object):
         for d in self.data:
             yield d
 
+Collection = QuerySet
 
 ## filter and lookup functions
 

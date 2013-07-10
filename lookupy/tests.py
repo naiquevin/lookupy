@@ -49,7 +49,7 @@ def test_dunder_key_val():
 
 def test_Collection():
     c = Collection(entries_fixtures)
-    assert_list_equal(list(c.items), entries_fixtures)
+    assert_list_equal(list(c), entries_fixtures)
     assert_list_equal(list(c), entries_fixtures)
 
 
@@ -285,23 +285,23 @@ def test_Collection_QuerySet():
             {'framework': 'Zend', 'language': 'PHP', 'type': 'full-stack'},
             {'framework': 'Slim', 'language': 'PHP', 'type': 'micro'}]
     c = Collection(data)
-    r1 = c.items.filter(framework__startswith='S')
+    r1 = c.filter(framework__startswith='S')
     assert isinstance(r1, QuerySet)
     assert len(list(r1)) == 2
-    r2 = c.items.filter(Q(language__exact='Python') | Q(language__exact='Ruby'))
+    r2 = c.filter(Q(language__exact='Python') | Q(language__exact='Ruby'))
     assert len(list(r2)) == 4
-    r3 = c.items.filter(language='PHP')
+    r3 = c.filter(language='PHP')
     assert_list_equal(list(r3.select('framework', 'type')),
                       [{'framework': 'Zend', 'type': 'full-stack'},
                        {'framework': 'Slim', 'type': 'micro'}])
-    r4 = c.items.filter(Q(language__exact='Python') | Q(language__exact='Ruby'))
+    r4 = c.filter(Q(language__exact='Python') | Q(language__exact='Ruby'))
     assert_list_equal(list(r4.select('framework')),
                       [{'framework': 'Django'},
                        {'framework': 'Flask'},
                        {'framework': 'Rails'},
                        {'framework': 'Sinatra'}])
     # :todo: test with flatten=True
-    r5 = c.items.filter(framework__startswith='S').select('framework', 'somekey')
+    r5 = c.filter(framework__startswith='S').select('framework', 'somekey')
     assert_list_equal(list(r5),
                       [{'framework': 'Sinatra', 'somekey': None},
                        {'framework': 'Slim', 'somekey': None}])
