@@ -9,6 +9,7 @@
 import re
 from functools import partial
 
+
 class QuerySet(object):
     """Provides an interface to filter data and select specific fields
     from the data
@@ -70,7 +71,7 @@ class QuerySet(object):
         :rtype        : QuerySet
 
         """
-        return QuerySet(filter_items(self.data, *args, **kwargs))
+        return self.__class__(filter_items(self.data, *args, **kwargs))
 
     def select(self, *args, **kwargs):
         """Selects specific fields of the data
@@ -88,13 +89,16 @@ class QuerySet(object):
         flatten = kwargs.pop('flatten', False)
         f = flatten_keys if flatten else undunder_dict
         result = (f(d) for d in include_keys(self.data, args))
-        return QuerySet(result)
+        return self.__class__(result)
 
     def __iter__(self):
         for d in self.data:
             yield d
 
+
+# QuerySet given an alias for backward compatibility
 Collection = QuerySet
+
 
 ## filter and lookup functions
 
