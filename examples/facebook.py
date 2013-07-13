@@ -44,38 +44,38 @@ if __name__ == '__main__':
     c = Collection(posts['data'])
 
     print("==== posts of type 'status' ====")
-    statuses = c.items.filter(type__exact='status') \
+    statuses = c.filter(type__exact='status') \
                       .select('message')
     pprint(list(statuses))
     print()
 
     print("==== posts of type 'links' ====")
-    links = c.items.filter(type__exact='link') \
+    links = c.filter(type__exact='link') \
                    .select('message')
     pprint(list(links))
     print()
 
     print("==== posts with at least 1 likes ====")
-    liked = c.items.filter(likes__count__gte=1) \
+    liked = c.filter(likes__count__gte=1) \
                    .select('message', 'likes')
     pprint(list(liked))
     print()
 
     print("==== posts about Erlang ====")
-    about_erlang = c.items.filter(message__icontains='erlang') \
+    about_erlang = c.filter(message__icontains='erlang') \
                           .select('message')
     pprint(list(about_erlang))
     print()
 
     print("==== posts created by the Twitter app ====")
-    via_twitter = c.items.filter(application__name='Twitter') \
+    via_twitter = c.filter(application__name='Twitter') \
                          .select('message')
     pprint(list(via_twitter))
     print()
 
     print("=== posts having a hashtag or a mention ===")
     p1, p2 = map(re.compile, [r'@.+', r'#.+'])
-    tags_mentions = c.items.filter(Q(message__regex=p1)
+    tags_mentions = c.filter(Q(message__regex=p1)
                                    |
                                    Q(message__regex=p2)) \
                            .select('message', 'from__name')
