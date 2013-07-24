@@ -19,20 +19,20 @@ c = Collection(data['log']['entries'])
 
 print("==== All javascript assets fetched ====")
 js_assets = c.filter(response__content__mimeType='text/javascript') \
-                   .select('request__url')
+             .select('request__url')
 pprint(list(js_assets))
 print()
 
 print("==== URLs that were blocked ====")
 blocked_urls = c.filter(timings__blocked__gt=0) \
-                      .select('request__url')
+                .select('request__url')
 pprint(list(blocked_urls))
 print()
 
 print("==== GET requests that responded with 200 OK ====")
 get_200 = c.filter(request__method__exact='GET', 
-                         response__status__exact=200) \
-                 .select('request__url')
+                   response__status__exact=200) \
+           .select('request__url')
 pprint(list(get_200))
 print()
 
@@ -43,8 +43,8 @@ print()
 
 print("==== Images ====")
 images = c.filter(response__headers__filter=Q(name__exact='Content-Type', 
-                                                    value__startswith='image/')) \
-                .select('request__url', flatten=True)
+                                              value__startswith='image/')) \
+          .select('request__url', flatten=True)
 pprint(list(images))
 print()
 

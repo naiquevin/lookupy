@@ -45,40 +45,40 @@ if __name__ == '__main__':
 
     print("==== posts of type 'status' ====")
     statuses = c.filter(type__exact='status') \
-                      .select('message')
+                .select('message')
     pprint(list(statuses))
     print()
 
     print("==== posts of type 'links' ====")
     links = c.filter(type__exact='link') \
-                   .select('message')
+             .select('message')
     pprint(list(links))
     print()
 
     print("==== posts with at least 1 likes ====")
     liked = c.filter(likes__count__gte=1) \
-                   .select('message', 'likes')
+             .select('message', 'likes')
     pprint(list(liked))
     print()
 
     print("==== posts about Erlang ====")
     about_erlang = c.filter(message__icontains='erlang') \
-                          .select('message')
+                    .select('message')
     pprint(list(about_erlang))
     print()
 
     print("==== posts created by the Twitter app ====")
     via_twitter = c.filter(application__name='Twitter') \
-                         .select('message')
+                   .select('message')
     pprint(list(via_twitter))
     print()
 
     print("=== posts having a hashtag or a mention ===")
     p1, p2 = map(re.compile, [r'@.+', r'#.+'])
     tags_mentions = c.filter(Q(message__regex=p1)
-                                   |
-                                   Q(message__regex=p2)) \
-                           .select('message', 'from__name')
+                             |
+                             Q(message__regex=p2)) \
+                     .select('message', 'from__name')
     pprint(list(tags_mentions))
     print()
 

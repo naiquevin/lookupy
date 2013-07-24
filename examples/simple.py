@@ -44,8 +44,8 @@ print()
 
 print('items in which language is \'Python\' *or* \'Ruby\' *and* framework name startswith \'s\' and selected to show only the \'framework field\'')
 result = c.filter(Q(language__exact='Python') | Q(language__exact='Ruby')) \
-                .filter(framework__istartswith='s') \
-                .select('framework')
+          .filter(framework__istartswith='s') \
+          .select('framework')
 print(list(result))
 print()
 
