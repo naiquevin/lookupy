@@ -6,7 +6,7 @@ from functools import reduce
 
 import sys
 
-sys.path.append(os.path.abspath('../lookupy/'))
+sys.path.append(os.path.abspath('../'))
 
 from lookupy import Collection, Q
 

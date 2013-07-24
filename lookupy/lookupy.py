@@ -9,6 +9,8 @@
 import re
 from functools import partial
 
+from .nesdict import nesget, neskey_split, flat_to_nested, nested_to_flat
+
 
 class QuerySet(object):
     """Provides an interface to filter data and select specific fields
@@ -87,7 +89,7 @@ class QuerySet(object):
 
         """
         flatten = kwargs.pop('flatten', False)
-        f = flatten_keys if flatten else undunder_dict
+        f = nested_to_flat if flatten else flat_to_nested
         result = (f(d) for d in include_keys(self.data, args))
         return self.__class__(result)
 
@@ -135,50 +137,48 @@ def lookup(key, val, item):
     :rtype      : (boolean) True if field-val exists else False
 
     """
-    parts = key.rsplit('__', 1)
-    init, last = parts if len(parts) == 2 else (parts[0], None)
-    dkv = dunder_key_val
+    init, last = neskey_split(key)
     if last == 'exact':
-        return dkv(item, init) == val
+        return nesget(item, init) == val
     elif last == 'neq':
-        return dkv(item, init) != val
+        return nesget(item, init) != val
     elif last == 'contains':
         val = guard_str(val)
-        return iff_not_none(dkv(item, init), lambda y: val in y)
+        return iff_not_none(nesget(item, init), lambda y: val in y)
     elif last == 'icontains':
         val = guard_str(val)
-        return iff_not_none(dkv(item, init), lambda y: val.lower() in y.lower())
+        return iff_not_none(nesget(item, init), lambda y: val.lower() in y.lower())
     elif last == 'in':
         val = guard_iter(val)
-        return dkv(item, init) in val
+        return nesget(item, init) in val
     elif last == 'startswith':
         val = guard_str(val)
-        return iff_not_none(dkv(item, init), lambda y: y.startswith(val))
+        return iff_not_none(nesget(item, init), lambda y: y.startswith(val))
     elif last == 'istartswith':
         val = guard_str(val)
-        return iff_not_none(dkv(item, init), lambda y: y.lower().startswith(val.lower()))
+        return iff_not_none(nesget(item, init), lambda y: y.lower().startswith(val.lower()))
     elif last == 'endswith':
         val = guard_str(val)
-        return iff_not_none(dkv(item, init), lambda y: y.endswith(val))
+        return iff_not_none(nesget(item, init), lambda y: y.endswith(val))
     elif last == 'iendswith':
         val = guard_str(val)
-        return iff_not_none(dkv(item, init), lambda y: y.lower().endswith(val.lower()))
+        return iff_not_none(nesget(item, init), lambda y: y.lower().endswith(val.lower()))
     elif last == 'gt':
-        return iff_not_none(dkv(item, init), lambda y: y > val)
+        return iff_not_none(nesget(item, init), lambda y: y > val)
     elif last == 'gte':
-        return iff_not_none(dkv(item, init), lambda y: y >= val)
+        return iff_not_none(nesget(item, init), lambda y: y >= val)
     elif last == 'lt':
-        return iff_not_none(dkv(item, init), lambda y: y < val)
+        return iff_not_none(nesget(item, init), lambda y: y < val)
     elif last == 'lte':
-        return iff_not_none(dkv(item, init), lambda y: y <= val)
+        return iff_not_none(nesget(item, init), lambda y: y <= val)
     elif last == 'regex':
-        return iff_not_none(dkv(item, init), lambda y: re.search(val, y) is not None)
+        return iff_not_none(nesget(item, init), lambda y: re.search(val, y) is not None)
     elif last == 'filter':
         val = guard_Q(val)
-        result = guard_list(dkv(item, init))
+        result = guard_list(nesget(item, init))
         return len(list(filter_items(result, val))) > 0
     else:
-        return dkv(item, key) == val
+        return nesget(item, key) == val
 
 
 ## Classes to compose compound lookups (Q object)
@@ -285,98 +285,7 @@ def include_keys(items, fields):
     :rtype        : lazy iterable
 
     """
-    return (dict((f, dunder_key_val(item, f)) for f in fields) for item in items)
-
-
-def dunder_key_val(_dict, key):
-    """Returns value for a specified "dunder_key"
-
-    A dunder key is just a fieldname that may or may not contain
-    double underscores (dunderscores!) for referrencing nested keys in
-    a dict. eg::
-
-         >>> data = {'a': {'b': 1}}
-         >>> dunder_key_val(data, 'a__b')
-         1
-
-    key 'b' can be referrenced as 'a__b'
-
-    :param _dict : (dict)
-    :param key   : (str) that represents a first level or nested key in the dict
-    :rtype       : (mixed) value corresponding to the key
-
-    """
-    parts = key.split('__', 1)
-    try:
-        result = _dict[parts[0]]
-    except KeyError:
-        return None
-    else:
-        return result if len(parts) == 1 else dunder_key_val(result, parts[1])
-
-
-def undunder_key(key):
-    """The final fieldname in a dunder key
-
-    eg::
-
-        >>> dunder_key('a__b__c')
-        c
-
-    :param key : (str) dunder key
-    :rtype     : (str) last part of the dunder key
-
-    """
-    return key.rsplit('__', 1)[-1]
-
-
-def flatten_keys(_dict):
-    """Converts a nested dict to a flat one
-
-    In doing so, it appends the nested keys as dunder keys to the dict
-    eg::
-
-        >>> flatten_keys({'a': 'hello', 'b': {'c': 'world'}})
-        {'a': 'hello', 'b__c': 'world'}
-
-    :param _dict : (dict) to flatten
-    :rtype       : (dict) flattened result
-
-    """
-    keylist = list(_dict.keys())
-    def decide_key(k, klist):
-        newkey = undunder_key(k)
-        return newkey if list(map(undunder_key, klist)).count(newkey) == 1 else k
-    original_keys = [decide_key(key, keylist) for key in keylist]
-    return dict(zip(original_keys, _dict.values()))
-
-
-def undunder_dict(_dict):
-    """Converts a flat dict with dunder keys to nested one
-
-    eg::
-
-        >>> undunder_dict({'a': 'hello', 'b__c': 'world'})
-        {'a': 'hello', 'b': {'c': 'world'}}
-
-    :param _dict : (dict) flat dict
-    :rtype       : (dict) nested dict
-
-    """
-
-    def f(key, value, acc):
-        parts = key.split('__')
-        acc[parts[0]] = value if len(parts) == 1 else f(parts[1], value, {})
-        return acc
-
-    result = {}
-    for r in [f(k, v, {}) for k, v in _dict.items()]:
-        rk = list(r.keys())[0]
-        if rk not in result:
-            result.update(r)
-        else:
-            result[rk].update(r[rk])
-    return result
+    return (dict((f, nesget(item, f)) for f in fields) for item in items)
 
 
 ## Exceptions
