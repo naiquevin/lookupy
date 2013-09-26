@@ -14,8 +14,8 @@ from nose.tools import assert_list_equal, assert_equal, assert_raises
 
 from .lookupy import filter_items, lookup, include_keys, Q, QuerySet, \
     Collection, LookupyError
-from .nesdict import make_neskey, neskey_split, neskey_init, neskey_last, \
-    nesget, flat_to_nested, nested_to_flat
+from .dunderkey import dunderkey, dunder_partition, dunder_init, dunder_last, \
+    dunder_get, undunder_keys, dunder_truncate
 
 
 entries_fixtures = [{'request': {'url': 'http://example.com', 'headers': [{'name': 'Connection', 'value': 'Keep-Alive'}]},
@@ -283,51 +283,51 @@ def test_Collection_QuerySet():
 
 ## nesdict tests
 
-def test_make_neskey():
-    assert make_neskey('a', 'b', 'c') == 'a__b__c'
-    assert make_neskey('a') == 'a'
-    assert make_neskey('name', 'school_name') == 'name__school_name'
+def test_dunderkey():
+    assert dunderkey('a', 'b', 'c') == 'a__b__c'
+    assert dunderkey('a') == 'a'
+    assert dunderkey('name', 'school_name') == 'name__school_name'
 
 
-def test_neskey_split():
-    assert neskey_split('a__b') == ('a', 'b')
-    assert neskey_split('a__b__c') == ('a__b', 'c')
-    assert neskey_split('a') == ('a', None)
+def test_dunder_partition():
+    assert dunder_partition('a__b') == ('a', 'b')
+    assert dunder_partition('a__b__c') == ('a__b', 'c')
+    assert dunder_partition('a') == ('a', None)
 
 
-def test_neskey_init():
-    assert neskey_init('a__b') == 'a'
-    assert neskey_init('a__b__c') == 'a__b'
-    assert neskey_init('a') == 'a'
+def test_dunder_init():
+    assert dunder_init('a__b') == 'a'
+    assert dunder_init('a__b__c') == 'a__b'
+    assert dunder_init('a') == 'a'
 
 
-def test_neskey_last():
-    assert neskey_last('a__b') == 'b'
-    assert neskey_last('a__b__c') == 'c'
-    assert neskey_last('a') == None
+def test_dunder_last():
+    assert dunder_last('a__b') == 'b'
+    assert dunder_last('a__b__c') == 'c'
+    assert dunder_last('a') == None
 
 
-def test_nesget():
+def test_dunder_get():
     d = dict([('a', 'A'),
               ('p', {'q': 'Q'}),
               ('x', {'y': {'z': 'Z'}})])
-    assert nesget(d, 'a') == 'A'
-    assert nesget(d, 'p__q') == 'Q'
-    assert nesget(d, 'x__y__z') == 'Z'
+    assert dunder_get(d, 'a') == 'A'
+    assert dunder_get(d, 'p__q') == 'Q'
+    assert dunder_get(d, 'x__y__z') == 'Z'
 
 
-def test_flat_to_nested():
+def test_undunder_keys():
     entry = {'request__url': 'http://example.com', 'request__headers': [{'name': 'Connection', 'value': 'Keep-Alive',}],
              'response__status': 404, 'response__headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'}]}
-    assert_equal(flat_to_nested(entry),
+    assert_equal(undunder_keys(entry),
                  {'request': {'url': 'http://example.com', 'headers': [{'name': 'Connection', 'value': 'Keep-Alive',}]},
                   'response': {'status': 404, 'headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'}]}})
 
 
-def test_nested_to_flat():
+def test_dunder_truncate():
     entry = {'request__url': 'http://example.com', 'request__headers': [{'name': 'Connection', 'value': 'Keep-Alive',}],
              'response__status': 404, 'response__headers': [{'name': 'Date', 'value': 'Thu, 13 Jun 2013 06:43:14 GMT'}]}
-    assert_equal(nested_to_flat(entry),
+    assert_equal(dunder_truncate(entry),
                  {'url': 'http://example.com',
                   'request__headers': [{'name': 'Connection', 'value': 'Keep-Alive',}],
                   'status': 404,

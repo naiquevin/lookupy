@@ -9,7 +9,7 @@
 import re
 from functools import partial
 
-from .nesdict import nesget, neskey_split, flat_to_nested, nested_to_flat
+from .dunderkey import dunder_get, dunder_partition, undunder_keys, dunder_truncate
 
 
 class QuerySet(object):
@@ -89,7 +89,7 @@ class QuerySet(object):
 
         """
         flatten = kwargs.pop('flatten', False)
-        f = nested_to_flat if flatten else flat_to_nested
+        f = dunder_truncate if flatten else undunder_keys
         result = (f(d) for d in include_keys(self.data, args))
         return self.__class__(result)
 
@@ -137,48 +137,48 @@ def lookup(key, val, item):
     :rtype      : (boolean) True if field-val exists else False
 
     """
-    init, last = neskey_split(key)
+    init, last = dunder_partition(key)
     if last == 'exact':
-        return nesget(item, init) == val
+        return dunder_get(item, init) == val
     elif last == 'neq':
-        return nesget(item, init) != val
+        return dunder_get(item, init) != val
     elif last == 'contains':
         val = guard_str(val)
-        return iff_not_none(nesget(item, init), lambda y: val in y)
+        return iff_not_none(dunder_get(item, init), lambda y: val in y)
     elif last == 'icontains':
         val = guard_str(val)
-        return iff_not_none(nesget(item, init), lambda y: val.lower() in y.lower())
+        return iff_not_none(dunder_get(item, init), lambda y: val.lower() in y.lower())
     elif last == 'in':
         val = guard_iter(val)
-        return nesget(item, init) in val
+        return dunder_get(item, init) in val
     elif last == 'startswith':
         val = guard_str(val)
-        return iff_not_none(nesget(item, init), lambda y: y.startswith(val))
+        return iff_not_none(dunder_get(item, init), lambda y: y.startswith(val))
     elif last == 'istartswith':
         val = guard_str(val)
-        return iff_not_none(nesget(item, init), lambda y: y.lower().startswith(val.lower()))
+        return iff_not_none(dunder_get(item, init), lambda y: y.lower().startswith(val.lower()))
     elif last == 'endswith':
         val = guard_str(val)
-        return iff_not_none(nesget(item, init), lambda y: y.endswith(val))
+        return iff_not_none(dunder_get(item, init), lambda y: y.endswith(val))
     elif last == 'iendswith':
         val = guard_str(val)
-        return iff_not_none(nesget(item, init), lambda y: y.lower().endswith(val.lower()))
+        return iff_not_none(dunder_get(item, init), lambda y: y.lower().endswith(val.lower()))
     elif last == 'gt':
-        return iff_not_none(nesget(item, init), lambda y: y > val)
+        return iff_not_none(dunder_get(item, init), lambda y: y > val)
     elif last == 'gte':
-        return iff_not_none(nesget(item, init), lambda y: y >= val)
+        return iff_not_none(dunder_get(item, init), lambda y: y >= val)
     elif last == 'lt':
-        return iff_not_none(nesget(item, init), lambda y: y < val)
+        return iff_not_none(dunder_get(item, init), lambda y: y < val)
     elif last == 'lte':
-        return iff_not_none(nesget(item, init), lambda y: y <= val)
+        return iff_not_none(dunder_get(item, init), lambda y: y <= val)
     elif last == 'regex':
-        return iff_not_none(nesget(item, init), lambda y: re.search(val, y) is not None)
+        return iff_not_none(dunder_get(item, init), lambda y: re.search(val, y) is not None)
     elif last == 'filter':
         val = guard_Q(val)
-        result = guard_list(nesget(item, init))
+        result = guard_list(dunder_get(item, init))
         return len(list(filter_items(result, val))) > 0
     else:
-        return nesget(item, key) == val
+        return dunder_get(item, key) == val
 
 
 ## Classes to compose compound lookups (Q object)
@@ -285,7 +285,7 @@ def include_keys(items, fields):
     :rtype        : lazy iterable
 
     """
-    return (dict((f, nesget(item, f)) for f in fields) for item in items)
+    return (dict((f, dunder_get(item, f)) for f in fields) for item in items)
 
 
 ## Exceptions
