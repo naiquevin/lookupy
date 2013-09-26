@@ -8,3 +8,6 @@ htmlcov/
 
 # virtualenv dir
 env/
+
+# tox dir
+.tox/
