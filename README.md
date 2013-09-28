@@ -5,18 +5,19 @@ Lookupy is a Python library that provides a
 [Django](http://djangoproject.com/)
 [QuerySet](https://docs.djangoproject.com/en/1.5/ref/models/querysets/)
 like interface to query (filter and select) data (list of
-dictionaries). Needless to say, some ideas are shamelessly copied from
-Django's core.
+dictionaries).
 
 It actually started off as a library to parse and extract useful data
 out of HAR (HTTP Archive) files but along the way I felt that a
 generic library can be useful since I often find myself trying to get
 data out of JSON collections such as those obtained from facebook or
-github APIs.
+github APIs. I choose to imitate the Django queryset API because of my
+familiarity with it.
 
-Right now, it's still a WIP but I have used it in a couple of command
-line scripts (plus tests pass).
-
+I don't use this library all the time but I do find it helpful when
+working with deeply nested json/dicts - the kind that Facebook, Github
+etc. APIs return. For everyday stuff I prefer Python's built-in
+functional constructs such as map, filter, list comprehensions.
 
 Requirements
 ------------
@@ -26,6 +27,8 @@ Requirements
   [optional, for running tests]
 * [coverage.py](http://nedbatchelder.com/code/coverage/)
   [optional, for test coverage]
+* [Tox](https://pypi.python.org/pypi/tox)
+  [optional, for building and testing on different versions of Python]
 
 
 Installation
