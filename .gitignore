@@ -11,3 +11,5 @@ env/
 
 # tox dir
 .tox/
+
+dist/
