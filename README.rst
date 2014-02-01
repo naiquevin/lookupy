@@ -33,13 +33,11 @@ Requirements
 Installation
 ------------
 
-This package is not yet uploaded to PyPI which I plan to do once I
-have tested it enough. So for now it can be installed from github via
-pip as follows.
+The simplest way to install this library is to use pip
 
 .. code-block:: bash
-    
-    $ pip install git+git://github.com/naiquevin/lookupy.git
+
+    $ pip install lookupy
 
 **Tip!** Consider installing inside a
   `virtualenv <http://www.virtualenv.org/en/release-1.10/>`_
@@ -132,8 +130,8 @@ nothing is evaluated until consumption.
 .. code-block:: pycon
 
     >>> result = c.filter(Q(language__exact='Python') | Q(language__exact='Ruby')) \
-                        .filter(framework__istartswith='s')) \
-                        .select('framework')
+                  .filter(framework__istartswith='s')) \
+                  .select('framework')
     >>> for item in result: # <-- this is where filtering will happen
     ...     print(item)
     ...
@@ -213,13 +211,18 @@ Running tests
 
     $ make test
 
+To conveniently test under all environments (Python 2.7 and 3.2), run,
+
+.. code-block:: bash
+
+    $ tox
+
 
 Todo
 ----
 
 * Measure performance for larger data sets
 * Implement CLI for JSON files
-* Create package and upload to PyPI
 
 
 License
