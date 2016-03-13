@@ -318,7 +318,7 @@ def guard_type(classinfo, val):
         raise LookupyError('Value not a {classinfo}'.format(classinfo=classinfo))
     return val
 
-guard_str = partial(guard_type, str)
+guard_str = partial(guard_type, (str, unicode))
 guard_list = partial(guard_type, list)
 guard_Q = partial(guard_type, Q)
 
