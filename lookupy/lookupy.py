@@ -314,11 +314,14 @@ iff_not_none = partial(iff, lambda x: x is not None)
 
 
 def guard_type(classinfo, val):
-    if not isinstance(val, classinfo):
+    if isinstance(classinfo, tuple) and not isinstance(val, classinfo[0]) and not isinstance(val, classinfo[1]):
         raise LookupyError('Value not a {classinfo}'.format(classinfo=classinfo))
+    else:         
+        if not isinstance(val, classinfo):
+            raise LookupyError('Value not a {classinfo}'.format(classinfo=classinfo))
     return val
 
-guard_str = partial(guard_type, str)
+guard_str = partial(guard_type, (str, unicode))
 guard_list = partial(guard_type, list)
 guard_Q = partial(guard_type, Q)
 
