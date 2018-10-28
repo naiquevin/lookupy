@@ -26,6 +26,7 @@ class QuerySet(object):
 
     def __init__(self, data=None):
         self.data = data if data is not None else []
+        self._prefetch_related_lookups = False
 
     @property
     def model(self):
@@ -35,6 +36,18 @@ class QuerySet(object):
             return None
 
     def all(self):
+        return self
+
+    def get(self):
+        return next(self.data)
+
+    def using(self, using):
+        return self
+
+    def complex_filter(self, arg):
+        return self  # not implemented
+
+    def iterator(self):
         return self
 
     def filter(self, *args, **kwargs):
