@@ -24,8 +24,8 @@ class QuerySet(object):
 
     """
 
-    def __init__(self, data):
-        self.data = data
+    def __init__(self, data=None):
+        self.data = data if data is not None else []
 
     @property
     def model(self):
