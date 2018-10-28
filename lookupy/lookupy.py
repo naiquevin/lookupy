@@ -27,6 +27,16 @@ class QuerySet(object):
     def __init__(self, data):
         self.data = data
 
+    @property
+    def model(self):
+        try:
+            return type(self.data[0])
+        except KeyError:
+            return None
+
+    def all(self):
+        return self
+
     def filter(self, *args, **kwargs):
         """Filters data using the lookup parameters
 
