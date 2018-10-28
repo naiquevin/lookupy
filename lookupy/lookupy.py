@@ -24,8 +24,31 @@ class QuerySet(object):
 
     """
 
-    def __init__(self, data):
-        self.data = data
+    def __init__(self, data=None):
+        self.data = data if data is not None else []
+        self._prefetch_related_lookups = False
+
+    @property
+    def model(self):
+        try:
+            return type(self.data[0])
+        except KeyError:
+            return None
+
+    def all(self):
+        return self
+
+    def get(self):
+        return next(self.data)
+
+    def using(self, using):
+        return self
+
+    def complex_filter(self, arg):
+        return self  # not implemented
+
+    def iterator(self):
+        return self
 
     def filter(self, *args, **kwargs):
         """Filters data using the lookup parameters
@@ -116,6 +139,13 @@ def filter_items(items, *args, **kwargs):
     q1 = list(args) if args is not None else []
     q2 = [Q(**kwargs)] if kwargs is not None else []
     lookup_groups = q1 + q2
+    for i, lg in enumerate(lookup_groups):
+        if not isinstance(lg, Q):
+            lookup_groups[i] = LookupNode()
+            lookup_groups[i].op = lg.connector.lower()
+            if hasattr(lg, 'children'):
+                for c in lg.children:
+                    lookup_groups[i].add_child(LookupLeaf(**{c[0]: c[1]}))
     pred = lambda item: all(lg.evaluate(item) for lg in lookup_groups)
     return (item for item in items if pred(item))
 
