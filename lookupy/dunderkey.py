@@ -74,12 +74,20 @@ def dunder_get(_dict, key):
 
     """
     parts = key.split('__', 1)
+
+    key = parts[0]
+
     try:
-        result = _dict[parts[0]]
+        result = _dict[key]
     except KeyError:
         return None
-    else:
-        return result if len(parts) == 1 else dunder_get(result, parts[1])
+    except TypeError:
+        try:
+            result = getattr(_dict, key)
+        except AttributeError:
+            return None
+
+    return result if len(parts) == 1 else dunder_get(result, parts[1])
 
 
 def undunder_keys(_dict):
