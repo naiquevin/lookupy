@@ -108,6 +108,7 @@ def test_lookup():
     # in          -- works for strings and lists, else raises error
     assert lookup('request__url__in', ['http://example.com',
                                        'http://blog.example.com'], entry1)
+    assert lookup('request__url__not_in', ['http://example.io'], entry1)
 
     assert lookup('response__status__in', [400, 200], entry2)
     assert not lookup('response__status__in', [], entry2)
