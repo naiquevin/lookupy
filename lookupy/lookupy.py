@@ -151,6 +151,9 @@ def lookup(key, val, item):
     elif last == 'in':
         val = guard_iter(val)
         return dunder_get(item, init) in val
+    elif last == 'not_in':
+        val = guard_iter(val)
+        return dunder_get(item, init) not in val
     elif last == 'startswith':
         val = guard_str(val)
         return iff_not_none(dunder_get(item, init), lambda y: y.startswith(val))
